@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>늘의 햄버거 가게 - 프로토타입</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-area">
+            <div id="timer">⏱️ 제한 시간: <span id="time-val">120</span>s</div>
+            <div id="score">💰 점수: <span id="score-val">0</span></div>
+            <button id="serve-bell-btn">🔔 서빙 벨 (클릭)</button>
+        </div>
+
+        <div id="grill-container">
+            <div class="section-title">철판 영역 (Grill Area)</div>
+            <div class="grill-zones">
+                <div class="grill-zone" data-id="0">구역 1<br><span class="status">비어있음</span></div>
+                <div class="grill-zone" data-id="1">구역 2<br><span class="status">비어있음</span></div>
+                <div class="grill-zone" data-id="2">구역 3<br><span class="status">비어있음</span></div>
+                <div class="grill-zone" data-id="3">구역 4<br><span class="status">비어있음</span></div>
+            </div>
+        </div>
+
+        <div id="bag-container">
+            <div class="section-title">빵봉지 조립/포장 영역 (Burger Bags)</div>
+            <div class="bag-zones">
+                <div class="bag-zone" data-id="0">
+                    <div class="bag-name">빵봉지 1</div>
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="1">
+                    <div class="bag-name">빵봉지 2</div>
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="2">
+                    <div class="bag-name">빵봉지 3</div>
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="3">
+                    <div class="bag-name">빵봉지 4</div>
+                    <div class="burger-stack"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tray-container">
+            <div class="tray-item" data-type="bun" style="background-color: #FFA54F;">빵 (Bun)</div>
+            <div class="tray-item" data-type="cheeze" style="background-color: #FFD700;">치즈 (Cheese)</div>
+            <div class="tray-item" data-type="onion" style="background-color: #E066FF;">양파 (Onion)</div>
+            <div class="tray-item" data-type="patty" style="background-color: #8B3A3A; color: white;">패티 (Patty)</div>
+            <div class="tray-item" data-type="source1" style="background-color: #FF3030; color: white;">소스1 (Red)</div>
+            <div class="tray-item" data-type="source2" style="background-color: #FFFFF0;">소스2 (White)</div>
+        </div>
+
+        <div id="mouse-follower"></div>
+        <div id="reaction-container" class="reaction-hidden">
+            <img id="reaction-img" src="" alt="늘님 리액션">
+        </div>
+    </div>
+
+    <audio id="background-bgm" src="audios/background_music.mp3" loop preload="auto"></audio>
+    <audio id="sizzle-sound" src="audios/sizzle.mp3" loop preload="auto"></audio>
+    <audio id="bell-sound" src="audios/service_bell.mp3" preload="auto"></audio>
+    <audio id="squirt-sound" src="audios/squirt.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: #222;
+    font-family: 'Malgun Gothic', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 1000px;
+    height: 650px;
+    background-color: #f0e6d2;
+    border: 4px solid #5c4033;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    justify-content: space-between;
+
+    /* 🟢 [추가] 이 틀 밖으로 나가는 모든 그래픽(캐릭터 잔상 포함)을 칼같이 잘라버립니다 */
+    overflow: hidden; 
+
+    background-image: url('images/bg_kitchen.png');
+    background-size: 100% 100%;       
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4033;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* 1. 상단 UI 영역 */
+#ui-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid #999;
+}
+
+#timer {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff3030;
+}
+
+#score {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0000ff;
+}
+
+#serve-bell-btn {
+    padding: 8px 15px;
+    background-color: #ff4500;
+    color: white;
+    border: 2px solid #b22222;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#serve-bell-btn:active {
+    background-color: #b22222;
+}
+
+/* 2. 철판 영역 */
+#grill-container {
+    background-color: #555;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* 철판 굽기 효과 */
+@keyframes glow {
+    0% { box-shadow: 0 0 10px #ff4500; border-color: #ff4500; }
+    50% { box-shadow: 0 0 30px #ff8c00; border-color: #ff8c00; }
+    100% { box-shadow: 0 0 10px #ff4500; border-color: #ff4500; }
+}
+
+.grill-zone.cooking { 
+    animation: glow 1.5s infinite !important;
+    border: 3px solid #ff4500 !important; /* 두께를 3px로 키움 */
+}
+
+.grill-zones {
+    display: flex;
+    justify-content: space-around;
+}
+
+.grill-zone {
+    width: 20%;
+    height: 100px;
+    background-color: #777;
+    border: 2px dashed #222;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding-bottom: 5px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center 10px;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+    /* overflow: visible !important;
+    position: relative; */
+}
+
+.grill-zone .status {
+    font-size: 10px;
+    background-color: rgba(0,0,0,0.6);
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-top: 2px;
+}
+
+/* 3. 빵봉지 영역 (절대 좌표 기반 적층 구조) */
+#bag-container {
+    background-color: #d2b48c;
+    border: 2px solid #8b4513;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.bag-zones {
+    display: flex;
+    justify-content: space-around;
+}
+
+.bag-zone {
+    width: 20%;
+    height: 220px; 
+    background-color: #fff8dc;
+    border: 2px solid #8b4513;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+}
+
+.bag-name {
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    background-color: rgba(139, 69, 19, 0.2);
+    padding: 2px 0;
+    z-index: 100; 
+}
+
+/* 내부 요소를 바닥 정렬 기준 absolute 안착 기틀로 변환 */
+.burger-stack {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 🍔 밀림 및 찌그러짐 현상을 완벽히 차단하는 절대 좌표 레이어 기믹 */
+.layer {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* 가로 정중앙 배치 */
+    width: 200px;      /* 140 → 170 */
+    height: 100px;      /* 60 → 75 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    color: transparent;           /* 텍스트 완벽 차단 */
+    transition: bottom 0.1s ease-out; /* 결합 시 쫀득한 모션 유도 */
+}
+
+.bag-zone.packed {
+    background-color: #f4a460;
+    border: 2px dashed #ff4500;
+}
+
+/* 하단 전체 틀 공간 확장 */
+#tray-container, .tray-container {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: flex-end !important;   /* 모든 통의 바닥 라인을 일렬 정렬 */
+    width: 100% !important;
+    height: 160px !important;           /* 💡 재료통들의 최대 높이에 맞춤 */
+    box-sizing: border-box !important;
+    background-color: transparent !important;
+    gap: 3px !important;                /* 통끼리 이쁘게 맞닿는 간격 */
+    
+    /* 🚨 [해결책 1] 650px 창 안에서 재료통 구역이 짜부라지는 현상을 완벽히 차단합니다 */
+    flex-shrink: 0 !important;          
+    
+    /* 🚨 [해결책 2] 작동하지 않던 마진 대신, 구역 전체를 강제로 위로 20px 들어 올립니다! */
+    transform: translateY(-20px) !important; 
+}
+
+/* 하단 모든 아이템 공통 그래픽 기틀 */
+#tray-container .tray-item, .tray-container .tray-item, .tray-item {
+    display: block !important;
+    position: relative !important;
+    background-size: contain !important; 
+    background-position: center bottom !important;
+    background-repeat: no-repeat !important;
+    
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    
+    border: none !important;            
+    background-color: transparent !important; 
+    box-shadow: none !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    text-shadow: none !important;
+    cursor: pointer !important;
+    transition: opacity 0.1s ease !important;
+}
+
+/* [재료통] 4개의 넓적한 대야형 재료통 크기 고정 */
+.tray-item[data-type="bun"],
+.tray-item[data-type="cheeze"],
+.tray-item[data-type="onion"],
+.tray-item[data-type="patty"] {
+    width: 160px !important;          
+    height: 120px !important;  
+    margin: 20px !important;       
+}
+
+/* [소스통] 두 소스통의 박스 크기를 완벽하게 일치시켜 정렬 기틀 동기화 */
+.tray-item[data-type="source1"],
+.tray-item[data-type="source2"] {
+    width: 110px !important;          
+    height: 120px !important;         
+    margin: 15px !important;
+}
+
+/* -------------------------------------------------------------------- */
+/* 🎯 [소스통 개별 정밀 튜닝 구역]                                       */
+/* 만약 두 소스통 이미지 자체의 투명 공백 때문에 미세하게 어긋나 보인다면,   */
+/* 아래의 '0px' 수치를 '-3px' 혹은 '5px' 처럼 미세하게 가감해서 맞추세요!    */
+/* -------------------------------------------------------------------- */
+.tray-item[data-type="source1"] {
+    transform: translateY(0px) !important;  /* 🔴 빨간 소스통 위아래 미세 위치 보정 */
+}
+.tray-item[data-type="source2"] {
+    transform: translateY(0px) !important;  /* ⚪ 하얀 소스통 위아래 미세 위치 보정 */
+}
+
+/* 클릭 시 부드럽게 깜빡이는 손맛 연출 (위치 이동 충돌 방지) */
+.tray-item:active {
+    opacity: 0.7 !important;
+}
+
+/* 에셋 이미지 경로 매핑 (.png) */
+.tray-item[data-type="bun"] { background-image: url('images/tray_bun.png') !important; }
+.tray-item[data-type="cheeze"] { background-image: url('images/tray_cheeze.png') !important; }
+.tray-item[data-type="onion"] { background-image: url('images/tray_onion.png') !important; }
+.tray-item[data-type="patty"] { background-image: url('images/tray_patty.png') !important; }
+.tray-item[data-type="source1"] { background-image: url('images/red_source.png') !important; }
+.tray-item[data-type="source2"] { background-image: url('images/white_source.png') !important; }    
+
+/* 마우스 추적 레이어 */
+#mouse-follower {
+    position: absolute;
+    pointer-events: none;
+    display: none;
+
+    width: 90px;
+    height: 90px;
+
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    z-index: 9999;
+    color: transparent;
+}
+
+/* 예시: 박스 입체감 주기 */
+#grill-container, #bag-container {
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+    background-image: url('images/wood_texture.png'); /* 나뭇결 이미지 추천 */
+}
+
+/* ==========================================
+   📸 [버전 업] 우측 벽에서 슥 튀어나오는 리액션 캐릭터 (PNG 최적화)
+   ========================================== */
+#reaction-container {
+    position: absolute;
+    /* 🎯 화면 아래 재료통들에 걸리지 않게 중간쯤 높이(카운터 위치)에 고정 */
+    top: 35%;           
+    
+    /* 기준점을 오른쪽 벽으로 설정 */
+    right: 0;           
+    z-index: 99999;     /* 최상위 레이어 유지 */
+    pointer-events: none; /* 뒤쪽 게임 클릭 방해 차단 */
+
+    /* 박스 테두리나 배경 찌꺼기 완벽 제거 */
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    
+    /* 떴을 때 뒤가 이쁘게 비치는 반투명 세팅 */
+    opacity: 1; 
+    
+    /* 원래 위치(right: 0)로 대기 */
+    transform: translateX(0);
+    
+    /* 튀어나오고 들어갈 때 쫀득하게 반응하는 가속도 트랜지션 */
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+}
+
+#reaction-img {
+    width: 280px;       /* 우측 벽에서 나오기 딱 조화로운 큼직한 사이즈 */
+    height: 280px;
+    object-fit: contain;
+    display: block;
+    
+    /* 투명 PNG 캐릭터가 돋보이도록 뒤에 은은한 하얀 광채 필터 주입 */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+}
+
+/* 💨 [핵심] 평소에 숨겨져 있을 때: 오른쪽 벽 너머(X축 100%)로 완전히 숨고 투명해짐 */
+.reaction-hidden {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+}
+
