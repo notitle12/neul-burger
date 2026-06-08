@@ -27,7 +27,7 @@ let burgerBags = [
 ];
 
 // ==========================================
-// 2. DOM 요소 캐싱
+// 2. DOM 요소 캐싱 (★누락되었던 상단 변수들 완전 복구)
 // ==========================================
 const container = document.getElementById('game-container');
 const timerEl = document.getElementById('time-val');
@@ -244,60 +244,65 @@ function setupEvents() {
     });
 
     bellBtn.addEventListener('click', () => {
-        // audio.js의 벨 사운드 함수 호출
         playBellSound();
 
         let hasPackedBurger = false; 
         let isPerfectSubmit = true;  
-        let anyFail = false; 
+        let isJangnanAny = false; // "장난해?" 조건 (빵 부족 등)이 하나라도 있는지
+        let earnedMoneyTotal = 0; // 이번 서빙으로 번 총 금액 (성공 여부 판단용)
+
+        // 💬 대사창 박스 DOM 캐싱 및 초기 스킨 리셋
+        const dialogueBox = document.getElementById('dialogue-box');
+        dialogueBox.className = ''; 
+        dialogueBox.innerText = '';
 
         burgerBags.forEach((bag, index) => {
             if (bag.isPacked) {
                 hasPackedBurger = true;
 
-                // 🛑 [버그 수정] 절대 필수조건 엄격하게 필터링 카운트 진행
+                // 절대 필수조건 엄격하게 필터링 카운트 진행
                 let bunCount = 0;
                 let pattyCount = 0;
                 bag.stack.forEach(item => {
                     if (item.startsWith('bun')) bunCount++;
-                    // 패티 패킹 이름(patty_cooked_cooked 등)을 명확하게 포착합니다.
                     if (item.startsWith('patty')) pattyCount++;
                 });
 
                 let earnedMoney = 0;
-                let isJangnan = false;
+                let isCurrentJangnan = false;
 
                 // 빵이 2개 미만이거나 패티가 단 1개도 없다면 "지금 장난해?" 트리거로 직행
                 if (bunCount < 2 || pattyCount < 1) {
                     earnedMoney = 0;
-                    isJangnan = true;
-                    anyFail = true;
+                    isCurrentJangnan = true;
+                    isJangnanAny = true; // 전체 서빙 결과에 장난 포함됨 표시
                     isPerfectSubmit = false;
                 } else {
-                    // 필수 구색 조건을 갖추었을 때만 정상 정산 연산 진행
                     earnedMoney = calculateBurgerPrice(bag.stack);
                     
+                    // 버거가 타거나 형편없어서 가치가 6000원 이하일 때 (0원 처리 후 분노)
                     if (earnedMoney <= 6000) {
                         earnedMoney = 0;
-                        anyFail = true;
-                        isPerfectSubmit = false;
+                        isPerfectSubmit = false; // 완벽 실패이므로 퍼펙트 아님
                     }
-                    if (earnedMoney > 0 && earnedMoney < 10000) {
-                        isPerfectSubmit = false;
+                    // 정상 판매했지만 감점이 있어 10000원 미만일 때
+                    else if (earnedMoney > 0 && earnedMoney < 10000) {
+                        isPerfectSubmit = false; 
                     }
                 }
 
                 score += earnedMoney;
-                
-                // 🧺 게임 진행 흐름을 살리기 위해 봉지는 무조건 원천 초기화 리셋!
+                earnedMoneyTotal += earnedMoney; // 총 수익 합산
                 bag.stack = [];
                 bag.isPacked = false;
                 
                 const bagEl = bagEls[index];
                 bagEl.classList.remove('packed');
                 
-                if (isJangnan) {
-                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (지금 장난해?)`;
+                // 🛑 [봉지별 말풍선 옵션 출력 시나리오]
+                if (isCurrentJangnan) {
+                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (장난 금지!)`;
+                    // 말풍선은 늘님 캐릭터 리액션 시점에 한 번만 출력하므로 여기서는 처리 안 함
                 } else if (earnedMoney === 0) {
                     bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (맛없어서 0원!)`;
                 } else {
@@ -309,15 +314,35 @@ function setupEvents() {
         
         scoreEl.innerText = score + "원";
 
-        // 서빙 피드백 캐릭터 리액션 시스템
+        // ==========================================
+        // 🎬 2. 서빙 피드백 캐릭터 이미지 & 말풍선 리액션 (★여기 수정★)
+        // ==========================================
         if (hasPackedBurger) {
             if (reactionTimeout) clearTimeout(reactionTimeout); 
 
-            // 필수 조건 미달 버거가 있거나 6000원 이하 맛없는 버거가 섞이면 무조건 Fail 리액션 송출!
-            if (isPerfectSubmit && !anyFail) {
-                reactionImg.src = 'images/clear_perfect.png'; 
-            } else {
-                reactionImg.src = 'images/clear_fail.png';    
+            // 1) 장난 버거(빵/패티 부족)가 하나라도 포함된 경우 -> 무조건 "분노(Jangnan)"
+            if (isJangnanAny) {
+                reactionImg.src = 'images/clear_fail.png'; // 분노 이미지 사용 (또는 jangnan용 이미지가 있다면 교체)
+                dialogueBox.className = 'bubble-bad';
+                dialogueBox.innerText = "지금 장난해?!";
+            }
+            // 2) 모든 버거가 0원 처리된 경우 (형편없음) -> "형편없음(Fail)"
+            else if (earnedMoneyTotal === 0) {
+                reactionImg.src = 'images/clear_fail.png'; // 실패(분노) 이미지
+                dialogueBox.className = 'bubble-bad';
+                dialogueBox.innerText = "이딴 걸 먹으라고 준 거야?!";
+            }
+            // 3) 제출한 모든 버거가 10000원짜리 황금 레시피인 경우 -> "대만족(Perfect)"
+            else if (isPerfectSubmit) {
+                reactionImg.src = 'images/clear_perfect.png'; // 완벽 이미지
+                dialogueBox.className = 'bubble-good';
+                dialogueBox.innerText = "이거지! 야르~";
+            }
+            // 4) 0원은 아니지만(판매 성공) 퍼펙트는 아닌 경우 (감점 있음) -> "먹을만함(Soso)" ★새로 추가★
+            else {
+                reactionImg.src = 'images/clear_soso.png'; // 쩝쩝 이미지가 들어갈 자리
+                dialogueBox.className = 'bubble-good'; // 테두리는 초록색(성공) 유지
+                dialogueBox.innerText = "쩝쩝쩝 먹을만하네"; // 요청하신 대사로 변경
             }
 
             reactionContainer.classList.remove('reaction-hidden');
@@ -327,7 +352,9 @@ function setupEvents() {
                     bagEls[index].querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
                 });
                 reactionContainer.classList.add('reaction-hidden');
-            }, 1000);
+                dialogueBox.className = '';
+                dialogueBox.innerText = '';
+            }, 1200); // 리액션 시간을 1200ms로 늘려 대사를 읽을 시간을 줌
         }
     });
 }
@@ -457,7 +484,7 @@ function elReset(zoneEl, id) {
 }
 
 // ==========================================
-// 🍔 7. 조합형 렌더링 함수 (constants.js 데이터를 사용)
+// 🍔 7. 조합형 렌더링 함수
 // ==========================================
 function renderBagStack(bagId) {
     const stackArea = bagEls[bagId].querySelector('.burger-stack');
@@ -474,8 +501,8 @@ function renderBagStack(bagId) {
         let imgKey = layer;
         let currentKey = rawType;
 
+        // ⭕ [아래 빵 고정 규칙]: 최초로 빌드된 첫 번째 빵만 bun_bottom 처리
         if (rawType === 'bun') {
-            // 💡 스택 내부에서 '현재 빵보다 먼저 들어간 빵'이 존재하는지 확인합니다.
             let hasPreviousBun = false;
             for (let i = 0; i < index; i++) {
                 if (burgerBags[bagId].stack[i].startsWith('bun')) {
@@ -485,12 +512,10 @@ function renderBagStack(bagId) {
             }
 
             if (hasPreviousBun) {
-                // 이미 아래에 빵이 한 개 이상 깔려있다면 이번 빵은 무조건 '위에 빵'
                 imgKey = 'bun_top';        
                 currentKey = 'bun_top';
                 layerDiv.classList.add('layer-bun-top');
             } else {
-                // 이 봉지에서 처음으로 조립된 첫 번째 빵이라면 무조건 '아래 빵'으로 고정!
                 imgKey = 'bun_bottom';     
                 currentKey = 'bun_bottom';
                 layerDiv.classList.add('layer-bun-bottom');
@@ -630,7 +655,7 @@ function startGameLoop() {
             }
         }); 
 
-        // audio.js에 이관된 치지직 효과음 함수 호출
+        // audio.js에 이관된 효과음 함수 호출
         handleSizzleSound(anyItemCooking);
 
     }, 100);

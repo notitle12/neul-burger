@@ -26,10 +26,7 @@ body {
     flex-direction: column;
     padding: 15px;
     justify-content: space-between;
-
-    /* 🟢 [추가] 이 틀 밖으로 나가는 모든 그래픽(캐릭터 잔상 포함)을 칼같이 잘라버립니다 */
     overflow: hidden; 
-
     background-image: url('images/bg_kitchen.png');
     background-size: 100% 100%;       
     background-position: center;
@@ -108,7 +105,6 @@ body {
     padding: 15px;
 }
 
-/* 철판 굽기 효과 */
 @keyframes glow {
     0% { box-shadow: 0 0 10px #ff4500; border-color: #ff4500; }
     50% { box-shadow: 0 0 30px #ff8c00; border-color: #ff8c00; }
@@ -117,7 +113,7 @@ body {
 
 .grill-zone.cooking { 
     animation: glow 1.5s infinite !important;
-    border: 3px solid #ff4500 !important; /* 두께를 3px로 키움 */
+    border: 3px solid #ff4500 !important;
 }
 
 .grill-zones {
@@ -276,9 +272,9 @@ body {
 .tray-item[data-type="source1"] { background-image: url('images/red_source.png') !important; }
 .tray-item[data-type="source2"] { background-image: url('images/white_source.png') !important; }    
 
+/* 마우스 추적 레이어 */
 #mouse-follower {
     position: absolute;
-    pointer-events: none;
     display: none;
     width: 90px;
     height: 90px;
@@ -287,6 +283,9 @@ body {
     background-position: center;
     z-index: 9999;
     color: transparent;
+
+    /* 🛑 버그 해결 마스터 핵심키: 팔로워 자체가 마우스 이벤트를 막지 않도록 설정하여 아래 요소들이 원활히 클릭되게 합니다. */
+    pointer-events: none !important; 
 }
 
 #grill-container, #bag-container {
@@ -294,37 +293,95 @@ body {
     background-image: url('images/wood_texture.png'); 
 }
 
-#reaction-container {
+/* ==========================================
+   🖼️ 늘님 리액션 및 말풍선 레이아웃 세트 (수평 무빙 보장 버전)
+   ========================================== */
+#game-container #reaction-container {
     position: absolute;
-    top: 35%;           
-    right: 0;           
+    top: 45%;           
+    right: 20px;        
     z-index: 99999;     
     pointer-events: none; 
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    opacity: 1; 
-    transform: translateX(0);
+    
+    /* 💡 구조 변경: 말풍선이 꺼져도 컨테이너의 높이는 항상 캐릭터 높이(280px)로 굳건히 고정되게 만듭니다. */
+    width: 280px;
+    height: 280px;
+
+    transform: translateY(-50%) translateX(0px); 
     transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
 }
 
 #reaction-img {
-    width: 280px;       
-    height: 280px;
+    width: 100%;       
+    height: 100%;
     object-fit: contain;
     display: block;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
 }
 
-.reaction-hidden {
-    transform: translateX(100%) !important;
-    opacity: 0 !important;
+#game-container #reaction-container.reaction-hidden {
+    transform: translateY(-50%) translateX(350px); 
+    opacity: 0;
 }
 
 /* ==========================================
-   🛠️ 사운드 설정 모달 팝업 스타일구역
-   ========================================== */
+   💬 실시간 동적 대사 말풍선 컴포넌트
+   ========================================= */
+/* 💬 말풍선 컴포넌트 */
+#dialogue-box {
+    /* 💡 핵심 교정: position을 absolute로 바꿔서 부모 주머니 높이를 변화시키지 않는 '유령 상태'로 만듭니다. */
+    position: absolute;     
+    
+    /* 💡 위치 강제 고정: 캐릭터 박스(280x280)의 위쪽, 왼쪽 바깥 영역에 뜨도록 좌표를 설정합니다. */
+    bottom: 260px;          /* 캐릭터 머리 위로 배치 (높이에 맞춰 조절 가능) */
+    right: 120px;           /* 캐릭터 왼쪽으로 밀어내기 (간격에 맞춰 조절 가능) */
+    
+    min-width: 180px;       
+    min-height: 85px;       
+    padding: 22px 28px 32px 28px; 
+    font-size: 15px;        
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap; 
+    z-index: 100001;
+    box-sizing: border-box;
+    display: none; 
+    align-items: center;
+    justify-content: center;
+}
+
+/* 1) 황금 레시피 / 일반 성공 버거 제출 시 */
+#dialogue-box.bubble-good {
+    display: flex !important;
+    background-image: url('images/bubble_good.png') !important; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    color: #7c3f00; 
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+}
+
+/* 2) 0원 버거 / 사기 버거 제출 시 분노 연출 */
+#dialogue-box.bubble-bad {
+    display: flex !important;
+    background-image: url('images/bubble_bad.png') !important; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    color: #b71c1c; 
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+    animation: bubble-shake 0.1s infinite; 
+}
+
+@keyframes bubble-shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+    30% { transform: translate(0px, 1px) rotate(0.5deg); }
+    50% { transform: translate(-1px, 1px) rotate(0deg); }
+    70% { transform: translate(1px, -1px) rotate(0.5deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+
+/* 🛠️ 사운드 설정 모달 팝업 스타일구역 */
 #settings-modal {
     position: absolute;
     top: 0;
@@ -358,6 +415,14 @@ body {
     margin-bottom: 20px;
 }
 
+.modal-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #d2b48c;
+    margin: 5px 0 15px 0;
+    opacity: 0.5;
+}
+
 .volume-row {
     width: 100%;
     display: flex;
@@ -370,7 +435,7 @@ body {
     font-size: 13px;
     font-weight: bold;
     color: #333;
-    width: 110px;
+    width: 130px;
 }
 
 .volume-row input[type="range"] {
@@ -402,7 +467,6 @@ body {
     background-color: #3e2a20;
 }
 
-/* 💨 설정 숨김용 가상 클래스 */
 .modal-hidden {
     display: none !important;
 }
