@@ -98,7 +98,8 @@ function setupEvents() {
 
             // 1️⃣ 철판이 비어있을 때
             if (!zone.isOccupied) {
-                if (mouseHolding.type === 'onion' || (mouseHolding.type === 'patty' && mouseHolding.status === 'raw')) {
+                // 🛑 재조리 불가 규칙 연동: 고기뿐만 아니라 양파(onion) 역시 트레이에서 갓 집어든 생것('raw') 상태일 때만 올릴 수 있도록 제한합니다.
+                if ((mouseHolding.type === 'onion' || mouseHolding.type === 'patty') && mouseHolding.status === 'raw') {
                     zone.isOccupied = true;
                     zone.type = mouseHolding.type;
                     zone.time = 0;
@@ -119,9 +120,9 @@ function setupEvents() {
                     
                     // 🥩 [패티 뒤집기] 패티가 아직 첫 면을 굽는 중이고 아직 타지 않았다면 뒤집기 가능
                     if (zone.type === 'patty' && !zone.isFlipped && zone.status !== 'burned') {
-                        if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                        if (zone.sideTime >= 4 && zone.sideTime <= 6) {
                             zone.frontStatus = 'cooked'; 
-                        } else if (zone.sideTime > 3) {
+                        } else if (zone.sideTime > 6) {
                             zone.frontStatus = 'burned'; 
                         } else {
                             zone.frontStatus = 'raw';    
@@ -149,9 +150,9 @@ function setupEvents() {
                         if (zone.type === 'patty') {
                             let backStatus = 'raw';
                             if (zone.isFlipped) {
-                                if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                                if (zone.sideTime >= 4 && zone.sideTime <= 6) {
                                     backStatus = 'cooked'; 
-                                } else if (zone.sideTime > 3) {
+                                } else if (zone.sideTime > 6) {
                                     backStatus = 'burned'; 
                                 }
                             }
@@ -490,7 +491,7 @@ function renderBagStack(bagId) {
 function startGameLoop() {
     gameInterval = setInterval(() => {
         timeLeft--;
-        timerEl.innerText = timeLeft;
+        timerEl.innerText = Math.ceil(timeLeft / 10);
 
         if (timeLeft <= 0) {
             clearInterval(gameInterval);
@@ -517,10 +518,10 @@ function startGameLoop() {
 
                 if (zone.type === 'patty') {
                     if (!zone.isFlipped) {
-                        if (zone.sideTime < 2) {
+                        if (zone.sideTime < 4) {
                             zone.status = 'raw';
                             statusSpan.innerText = `첫면 굽는중 ${zone.sideTime.toFixed(1)}초`;
-                        } else if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                        } else if (zone.sideTime >= 4 && zone.sideTime <= 6) {
                             zone.status = 'raw'; 
                             statusSpan.innerText = `🔥 뒤집어! ${zone.sideTime.toFixed(1)}초`;
                         } else {
@@ -528,10 +529,10 @@ function startGameLoop() {
                             zone.frontStatus = 'burned';
                         }
                     } else {
-                        if (zone.sideTime < 2) {
+                        if (zone.sideTime < 4) {
                             zone.status = 'raw';
                             statusSpan.innerText = `뒷면 굽는중 ${zone.sideTime.toFixed(1)}초`;
-                        } else if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                        } else if (zone.sideTime >= 4 && zone.sideTime <= 6) {
                             zone.status = 'cooked';
                             statusSpan.innerText = `✨ 뒷면 완벽! ${zone.sideTime.toFixed(1)}초`;
                         } else {
@@ -539,9 +540,9 @@ function startGameLoop() {
                         }
                     }
                 } else if (zone.type === 'onion') {
-                    if (zone.time < 1.5) {
+                    if (zone.time < 3) {
                         zone.status = 'raw';
-                    } else if (zone.time >= 1.5 && zone.time <= 3) {
+                    } else if (zone.time >= 3 && zone.time <= 5) {
                         zone.status = 'cooked';
                     } else {
                         zone.status = 'burned';
