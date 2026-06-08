@@ -55,16 +55,23 @@ body {
     border: 2px solid #999;
 }
 
-#timer {
-    font-size: 18px;
-    font-weight: bold;
-    color: #ff3030;
+#ui-btns {
+    display: flex;
+    gap: 10px;
 }
 
-#score {
-    font-size: 18px;
+#settings-open-btn {
+    padding: 8px 15px;
+    background-color: #778899;
+    color: white;
+    border: 2px solid #4f5d6a;
+    border-radius: 5px;
     font-weight: bold;
-    color: #0000ff;
+    cursor: pointer;
+}
+
+#settings-open-btn:active {
+    background-color: #4f5d6a;
 }
 
 #serve-bell-btn {
@@ -79,6 +86,18 @@ body {
 
 #serve-bell-btn:active {
     background-color: #b22222;
+}
+
+#timer {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff3030;
+}
+
+#score {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0000ff;
 }
 
 /* 2. 철판 영역 */
@@ -126,8 +145,6 @@ body {
     background-position: center 10px;
     color: #fff;
     text-shadow: 1px 1px 2px #000;
-    /* overflow: visible !important;
-    position: relative; */
 }
 
 .grill-zone .status {
@@ -138,7 +155,7 @@ body {
     margin-top: 2px;
 }
 
-/* 3. 빵봉지 영역 (절대 좌표 기반 적층 구조) */
+/* 3. 빵봉지 영역 */
 #bag-container {
     background-color: #d2b48c;
     border: 2px solid #8b4513;
@@ -172,7 +189,6 @@ body {
     z-index: 100; 
 }
 
-/* 내부 요소를 바닥 정렬 기준 absolute 안착 기틀로 변환 */
 .burger-stack {
     flex: 1;
     position: relative;
@@ -181,18 +197,17 @@ body {
     overflow: hidden;
 }
 
-/* 🍔 밀림 및 찌그러짐 현상을 완벽히 차단하는 절대 좌표 레이어 기믹 */
 .layer {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%); /* 가로 정중앙 배치 */
-    width: 200px;      /* 140 → 170 */
-    height: 100px;      /* 60 → 75 */
+    transform: translateX(-50%); 
+    width: 200px;      
+    height: 100px;      
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center bottom;
-    color: transparent;           /* 텍스트 완벽 차단 */
-    transition: bottom 0.1s ease-out; /* 결합 시 쫀득한 모션 유도 */
+    color: transparent;           
+    transition: bottom 0.1s ease-out; 
 }
 
 .bag-zone.packed {
@@ -200,36 +215,29 @@ body {
     border: 2px dashed #ff4500;
 }
 
-/* 하단 전체 틀 공간 확장 */
+/* 4. 하단 트레이 영역 */
 #tray-container, .tray-container {
     display: flex !important;
     flex-direction: row !important;
     justify-content: center !important;
-    align-items: flex-end !important;   /* 모든 통의 바닥 라인을 일렬 정렬 */
+    align-items: flex-end !important;   
     width: 100% !important;
-    height: 160px !important;           /* 💡 재료통들의 최대 높이에 맞춤 */
+    height: 160px !important;           
     box-sizing: border-box !important;
     background-color: transparent !important;
-    gap: 3px !important;                /* 통끼리 이쁘게 맞닿는 간격 */
-    
-    /* 🚨 [해결책 1] 650px 창 안에서 재료통 구역이 짜부라지는 현상을 완벽히 차단합니다 */
+    gap: 3px !important;                
     flex-shrink: 0 !important;          
-    
-    /* 🚨 [해결책 2] 작동하지 않던 마진 대신, 구역 전체를 강제로 위로 20px 들어 올립니다! */
     transform: translateY(-20px) !important; 
 }
 
-/* 하단 모든 아이템 공통 그래픽 기틀 */
 #tray-container .tray-item, .tray-container .tray-item, .tray-item {
     display: block !important;
     position: relative !important;
     background-size: contain !important; 
     background-position: center bottom !important;
     background-repeat: no-repeat !important;
-    
     image-rendering: pixelated !important;
     image-rendering: crisp-edges !important;
-    
     border: none !important;            
     background-color: transparent !important; 
     box-shadow: none !important;
@@ -240,7 +248,6 @@ body {
     transition: opacity 0.1s ease !important;
 }
 
-/* [재료통] 4개의 넓적한 대야형 재료통 크기 고정 */
 .tray-item[data-type="bun"],
 .tray-item[data-type="cheeze"],
 .tray-item[data-type="onion"],
@@ -250,7 +257,6 @@ body {
     margin: 20px !important;       
 }
 
-/* [소스통] 두 소스통의 박스 크기를 완벽하게 일치시켜 정렬 기틀 동기화 */
 .tray-item[data-type="source1"],
 .tray-item[data-type="source2"] {
     width: 110px !important;          
@@ -258,24 +264,11 @@ body {
     margin: 15px !important;
 }
 
-/* -------------------------------------------------------------------- */
-/* 🎯 [소스통 개별 정밀 튜닝 구역]                                       */
-/* 만약 두 소스통 이미지 자체의 투명 공백 때문에 미세하게 어긋나 보인다면,   */
-/* 아래의 '0px' 수치를 '-3px' 혹은 '5px' 처럼 미세하게 가감해서 맞추세요!    */
-/* -------------------------------------------------------------------- */
-.tray-item[data-type="source1"] {
-    transform: translateY(0px) !important;  /* 🔴 빨간 소스통 위아래 미세 위치 보정 */
-}
-.tray-item[data-type="source2"] {
-    transform: translateY(0px) !important;  /* ⚪ 하얀 소스통 위아래 미세 위치 보정 */
-}
+.tray-item[data-type="source1"] { transform: translateY(0px) !important; }
+.tray-item[data-type="source2"] { transform: translateY(0px) !important; }
 
-/* 클릭 시 부드럽게 깜빡이는 손맛 연출 (위치 이동 충돌 방지) */
-.tray-item:active {
-    opacity: 0.7 !important;
-}
+.tray-item:active { opacity: 0.7 !important; }
 
-/* 에셋 이미지 경로 매핑 (.png) */
 .tray-item[data-type="bun"] { background-image: url('images/tray_bun.png') !important; }
 .tray-item[data-type="cheeze"] { background-image: url('images/tray_cheeze.png') !important; }
 .tray-item[data-type="onion"] { background-image: url('images/tray_onion.png') !important; }
@@ -283,71 +276,133 @@ body {
 .tray-item[data-type="source1"] { background-image: url('images/red_source.png') !important; }
 .tray-item[data-type="source2"] { background-image: url('images/white_source.png') !important; }    
 
-/* 마우스 추적 레이어 */
 #mouse-follower {
     position: absolute;
     pointer-events: none;
     display: none;
-
     width: 90px;
     height: 90px;
-
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-
     z-index: 9999;
     color: transparent;
 }
 
-/* 예시: 박스 입체감 주기 */
 #grill-container, #bag-container {
     box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
-    background-image: url('images/wood_texture.png'); /* 나뭇결 이미지 추천 */
+    background-image: url('images/wood_texture.png'); 
 }
 
-/* ==========================================
-   📸 [버전 업] 우측 벽에서 슥 튀어나오는 리액션 캐릭터 (PNG 최적화)
-   ========================================== */
 #reaction-container {
     position: absolute;
-    /* 🎯 화면 아래 재료통들에 걸리지 않게 중간쯤 높이(카운터 위치)에 고정 */
     top: 35%;           
-    
-    /* 기준점을 오른쪽 벽으로 설정 */
     right: 0;           
-    z-index: 99999;     /* 최상위 레이어 유지 */
-    pointer-events: none; /* 뒤쪽 게임 클릭 방해 차단 */
-
-    /* 박스 테두리나 배경 찌꺼기 완벽 제거 */
+    z-index: 99999;     
+    pointer-events: none; 
     background: none !important;
     border: none !important;
     padding: 0 !important;
     box-shadow: none !important;
-    
-    /* 떴을 때 뒤가 이쁘게 비치는 반투명 세팅 */
     opacity: 1; 
-    
-    /* 원래 위치(right: 0)로 대기 */
     transform: translateX(0);
-    
-    /* 튀어나오고 들어갈 때 쫀득하게 반응하는 가속도 트랜지션 */
     transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
 }
 
 #reaction-img {
-    width: 280px;       /* 우측 벽에서 나오기 딱 조화로운 큼직한 사이즈 */
+    width: 280px;       
     height: 280px;
     object-fit: contain;
     display: block;
-    
-    /* 투명 PNG 캐릭터가 돋보이도록 뒤에 은은한 하얀 광채 필터 주입 */
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
 }
 
-/* 💨 [핵심] 평소에 숨겨져 있을 때: 오른쪽 벽 너머(X축 100%)로 완전히 숨고 투명해짐 */
 .reaction-hidden {
     transform: translateX(100%) !important;
     opacity: 0 !important;
 }
 
+/* ==========================================
+   🛠️ 사운드 설정 모달 팝업 스타일구역
+   ========================================== */
+#settings-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100000;
+    transition: opacity 0.2s ease;
+}
+
+.modal-content {
+    background-color: #fcf6eb;
+    border: 3px solid #5c4033;
+    border-radius: 12px;
+    width: 400px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.4);
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #5c4033;
+    margin-bottom: 20px;
+}
+
+.volume-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.volume-row label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    width: 110px;
+}
+
+.volume-row input[type="range"] {
+    flex: 1;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.volume-row span {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    width: 35px;
+    text-align: right;
+}
+
+#settings-close-btn {
+    margin-top: 10px;
+    padding: 8px 25px;
+    background-color: #5c4033;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#settings-close-btn:active {
+    background-color: #3e2a20;
+}
+
+/* 💨 설정 숨김용 가상 클래스 */
+.modal-hidden {
+    display: none !important;
+}
