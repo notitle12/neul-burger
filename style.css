@@ -97,12 +97,19 @@ body {
     color: #0000ff;
 }
 
-/* 2. 철판 영역 */
+/* ==========================================
+   2. 철판 영역 (Grill Area) - 외곽 상자 투명화
+   ========================================== */
 #grill-container {
-    background-color: #555;
-    border: 2px solid #333;
+    /* 💡 기존 background-color, border, box-shadow, background-image를 완전히 날려 투명화합니다 */
+    background-color: transparent !important;
+    border: none !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    
+    /* 기존 구조용 여백은 레이아웃 유지를 위해 그대로 남겨둡니다 */
     border-radius: 8px;
-    padding: 15px;
+    padding: 12px;
 }
 
 @keyframes glow {
@@ -151,38 +158,74 @@ body {
     margin-top: 2px;
 }
 
-/* 3. 빵봉지 영역 */
+/* ==========================================
+   3. 빵봉지 영역 (Burger Bags) - 크기 확장 및 레이아웃 안정화
+   ========================================== */
 #bag-container {
-    background-color: #d2b48c;
-    border: 2px solid #8b4513;
+    background-color: transparent !important;
+    border: none !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    
+    /* 💡 포장지가 커진 만큼 상자가 찌그러지지 않게 높이 확보 */
     border-radius: 8px;
-    padding: 10px;
+    padding: 0px 5px; 
+    height: 250px; 
 }
 
 .bag-zones {
     display: flex;
     justify-content: space-around;
+    align-items: center; 
+    height: 100%;
 }
 
 .bag-zone {
-    width: 20%;
-    height: 220px; 
-    background-color: #fff8dc;
-    border: 2px solid #8b4513;
-    border-radius: 5px;
+    /* 💡 포장지 이미지를 햄버거 대비 큼직하게 220px로 확장 */
+    width: 220px;   
+    height: 220px;  
+    background-color: transparent !important; 
+    
+    background-image: url('images/wrapping_paper.png') !important;
+    background-size: 100% 100% !important; 
+    background-repeat: no-repeat !important;
+    background-position: center bottom !important;
+    
+    border: none !important; 
     display: flex;
     flex-direction: column;
     position: relative;
     cursor: pointer;
+    transform: none !important; 
+    transition: transform 0.2s ease, filter 0.2s ease;
 }
 
+.bag-zone:hover {
+    transform: scale(1.03) !important;
+}
+
+/* 🎁 포장 완료 상태 */
+.bag-zone.packed {
+    filter: drop-shadow(0 0 12px rgba(255, 69, 0, 0.8)) brightness(0.95); 
+}
+
+/* ⚠️ 글자 태그가 깨지거나 에러나는 것을 방지하기 위한 안정화 스타일 */
 .bag-name {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     text-align: center;
-    background-color: rgba(139, 69, 19, 0.2);
-    padding: 2px 0;
+    background-color: rgba(255, 255, 255, 0.9); 
+    padding: 3px 8px;
+    border-radius: 4px;
     z-index: 100; 
+    color: #5c4033;
+    white-space: nowrap;
+    border: 1px solid #8b4513;
+
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) !important; 
 }
 
 .burger-stack {
@@ -190,25 +233,25 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: visible; /* 💡 포장지가 커졌으므로 잘리지 않고 다 보이게 만듭니다 */
 }
 
+/* 🍔 버거 부속품 레이어 크기 고정 (포장지가 커져도 버거는 기존 크기 유지) */
 .layer {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%); 
-    width: 200px;      
-    height: 100px;      
+    /* 💡 큰 포장지 정중앙 아래쪽에 이쁘게 안착하도록 바닥 여백 조정 */
+    bottom: 12px; 
+    transform: translateX(-50%) !important; 
+    
+    /* 💡 유저님이 요청하신 기존 햄버거 고정 크기 */
+    width: 120px;      
+    height: 80px;      
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center bottom;
+    background-position: center bottom !important;
     color: transparent;           
     transition: bottom 0.1s ease-out; 
-}
-
-.bag-zone.packed {
-    background-color: #f4a460;
-    border: 2px dashed #ff4500;
 }
 
 /* 4. 하단 트레이 영역 */
@@ -294,47 +337,100 @@ body {
 }
 
 /* ==========================================
-   🖼️ 늘님 리액션 및 말풍선 레이아웃 세트 (수평 무빙 보장 버전)
+   🖼️ 늘님 리액션 및 말풍선 레이아웃 세트 (CSS 절대좌표 정렬)
    ========================================== */
 #game-container #reaction-container {
     position: absolute;
-    top: 45%;           
-    right: 20px;        
+    top: 50%;           /* 화면 세로 중앙 기준 */
     z-index: 99999;     
     pointer-events: none; 
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
     
-    /* 💡 구조 변경: 말풍선이 꺼져도 컨테이너의 높이는 항상 캐릭터 높이(280px)로 굳건히 고정되게 만듭니다. */
-    width: 280px;
-    height: 280px;
+    /* 💡 [핵심 변형] 내부 요소를 세로로 쌓지 않고 개별 배치하기 위해 기준점만 지정 */
+    display: block; 
+    
+    right: 20px;        /* 화면에 나타났을 때 캐릭터 기준 위치 */
+    opacity: 1; 
 
-    transform: translateY(-50%) translateX(0px); 
-    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+    transform: translateY(-50%); /* Y축 중앙 정렬 유지 */
+    transition: right 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
 }
 
+/* 💡 숨겨질 때 모션은 기존과 동일 */
+#game-container #reaction-container.reaction-hidden {
+    right: -350px !important;
+    opacity: 0 !important;
+}
+
+/* 👤 캐릭터 이미지를 부모의 중심 메인 오브젝트로 설정 */
 #reaction-img {
-    width: 100%;       
-    height: 100%;
+    width: 280px;       
+    height: 280px;
     object-fit: contain;
     display: block;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    position: relative; /* 안정적인 레이어 형성을 위해 선언 */
 }
 
+/* 💡 [핵심 해결 2] 숨겨질 때(reaction-hidden)의 위치를 명확하게 화면 오른쪽 바깥(-350px)으로 밀어냅니다.
+   나타날 때(right: 20px)와 들어갈 때(right: -350px)의 축이 1대1로 일치하므로 절대 위치가 달라지지 않습니다. */
 #game-container #reaction-container.reaction-hidden {
-    transform: translateY(-50%) translateX(350px); 
-    opacity: 0;
+    right: -350px !important;
+    opacity: 0 !important;
 }
 
 /* ==========================================
-   💬 실시간 동적 대사 말풍선 컴포넌트
+   🖼️ 늘님 리액션 및 말풍선 레이아웃 세트 (CSS 절대좌표 정렬)
+   ========================================== */
+#game-container #reaction-container {
+    position: absolute;
+    top: 50%;           /* 화면 세로 중앙 기준 */
+    z-index: 99999;     
+    pointer-events: none; 
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    
+    /* 💡 [핵심 변형] 내부 요소를 세로로 쌓지 않고 개별 배치하기 위해 기준점만 지정 */
+    display: block; 
+    
+    right: 20px;        /* 화면에 나타났을 때 캐릭터 기준 위치 */
+    opacity: 1; 
+
+    transform: translateY(-50%); /* Y축 중앙 정렬 유지 */
+    transition: right 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+}
+
+/* 💡 숨겨질 때 모션은 기존과 동일 */
+#game-container #reaction-container.reaction-hidden {
+    right: -350px !important;
+    opacity: 0 !important;
+}
+
+/* 👤 캐릭터 이미지를 부모의 중심 메인 오브젝트로 설정 */
+#reaction-img {
+    width: 280px;       
+    height: 280px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    position: relative; /* 안정적인 레이어 형성을 위해 선언 */
+}
+
+/* ==========================================
+   💬 캐릭터를 기준으로 공중에 띄우는 말풍선
    ========================================= */
-/* 💬 말풍선 컴포넌트 */
 #dialogue-box {
-    /* 💡 핵심 교정: position을 absolute로 바꿔서 부모 주머니 높이를 변화시키지 않는 '유령 상태'로 만듭니다. */
+    /* 💡 [핵심 수정] 캐릭터 이미지와 물리적 공간을 분리하여 공중에 띄웁니다. */
     position: absolute;     
     
-    /* 💡 위치 강제 고정: 캐릭터 박스(280x280)의 위쪽, 왼쪽 바깥 영역에 뜨도록 좌표를 설정합니다. */
-    bottom: 260px;          /* 캐릭터 머리 위로 배치 (높이에 맞춰 조절 가능) */
-    right: 120px;           /* 캐릭터 왼쪽으로 밀어내기 (간격에 맞춰 조절 가능) */
+    /* 💡 캐릭터 기준(오른쪽 아래)에서 왼쪽 위 방향으로 말풍선을 배치합니다. */
+    top: -70px;          /* 캐릭터 머리 위쪽 원하는 높이로 조절 가능 */
+    left: -50px;        /* 캐릭터 왼쪽으로 밀어낼 간격 조절 가능 */
     
     min-width: 180px;       
     min-height: 85px;       

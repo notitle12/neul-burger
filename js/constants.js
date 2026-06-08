@@ -15,6 +15,8 @@ const targetRecipe = [
 ];
 
 const assetImages = {
+    'wrapping_paper': 'images/wrapping_paper.png',
+    
     'bun': 'images/bun.png',               
     'bun_bottom': 'images/bun1.png',        
     'bun_top': 'images/bun2.png',           

@@ -208,7 +208,6 @@ function setupEvents() {
                 }
                 
                 if (mouseHolding.type === 'source1' || mouseHolding.type === 'source2') {
-                    // audio.js의 소스 사운드 함수 호출
                     playSquirtSound();
 
                     const topItem = bag.stack.length > 0 ? bag.stack[bag.stack.length - 1] : "";
@@ -234,33 +233,32 @@ function setupEvents() {
                     clearMouseHolding();
                 }
             } else {
+                // 💡 [포장 완료 기능 유지!] 빈 손으로 클릭 시 포장 완료 상태로 변경됩니다.
                 if (bag.stack.length > 0) {
                     bag.isPacked = true;
-                    bagEl.classList.add('packed');
-                    bagEl.querySelector('.bag-name').innerText = `🎁 포장 완료`;
+                    bagEl.classList.add('packed'); // CSS에서 drop-shadow 불빛이 들어옵니다.
+                    // ✂️ 지워진 .bag-name의 innerText를 바꾸던 에러 코드를 완전히 도려냈습니다.
                 }
             }
         });
     });
 
-    bellBtn.addEventListener('click', () => {
+bellBtn.addEventListener('click', () => {
         playBellSound();
 
         let hasPackedBurger = false; 
         let isPerfectSubmit = true;  
-        let isJangnanAny = false; // "장난해?" 조건 (빵 부족 등)이 하나라도 있는지
-        let earnedMoneyTotal = 0; // 이번 서빙으로 번 총 금액 (성공 여부 판단용)
+        let isJangnanAny = false; 
+        let earnedMoneyTotal = 0; 
 
-        // 💬 대사창 박스 DOM 캐싱 및 초기 스킨 리셋
         const dialogueBox = document.getElementById('dialogue-box');
         dialogueBox.className = ''; 
         dialogueBox.innerText = '';
 
         burgerBags.forEach((bag, index) => {
-            if (bag.isPacked) {
+            if (bag.isPacked) { // 💡 포장 완료된 버거만 정산하는 규칙 유지
                 hasPackedBurger = true;
 
-                // 절대 필수조건 엄격하게 필터링 카운트 진행
                 let bunCount = 0;
                 let pattyCount = 0;
                 bag.stack.forEach(item => {
@@ -271,43 +269,32 @@ function setupEvents() {
                 let earnedMoney = 0;
                 let isCurrentJangnan = false;
 
-                // 빵이 2개 미만이거나 패티가 단 1개도 없다면 "지금 장난해?" 트리거로 직행
                 if (bunCount < 2 || pattyCount < 1) {
                     earnedMoney = 0;
                     isCurrentJangnan = true;
-                    isJangnanAny = true; // 전체 서빙 결과에 장난 포함됨 표시
+                    isJangnanAny = true; 
                     isPerfectSubmit = false;
                 } else {
                     earnedMoney = calculateBurgerPrice(bag.stack);
                     
-                    // 버거가 타거나 형편없어서 가치가 6000원 이하일 때 (0원 처리 후 분노)
                     if (earnedMoney <= 6000) {
                         earnedMoney = 0;
-                        isPerfectSubmit = false; // 완벽 실패이므로 퍼펙트 아님
+                        isPerfectSubmit = false; 
                     }
-                    // 정상 판매했지만 감점이 있어 10000원 미만일 때
                     else if (earnedMoney > 0 && earnedMoney < 10000) {
                         isPerfectSubmit = false; 
                     }
                 }
 
                 score += earnedMoney;
-                earnedMoneyTotal += earnedMoney; // 총 수익 합산
+                earnedMoneyTotal += earnedMoney; 
                 bag.stack = [];
                 bag.isPacked = false;
                 
                 const bagEl = bagEls[index];
-                bagEl.classList.remove('packed');
+                bagEl.classList.remove('packed'); // 포장 완료 불빛 해제
                 
-                // 🛑 [봉지별 말풍선 옵션 출력 시나리오]
-                if (isCurrentJangnan) {
-                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (장난 금지!)`;
-                    // 말풍선은 늘님 캐릭터 리액션 시점에 한 번만 출력하므로 여기서는 처리 안 함
-                } else if (earnedMoney === 0) {
-                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (맛없어서 0원!)`;
-                } else {
-                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
-                }
+                // ✂️ 빵봉지 글자(장난 금지!, 맛없어서 0원!)를 넣던 코드를 지우고 안정적으로 렌더링만 호출합니다.
                 renderBagStack(index);
             }
         });
@@ -315,46 +302,41 @@ function setupEvents() {
         scoreEl.innerText = score + "원";
 
         // ==========================================
-        // 🎬 2. 서빙 피드백 캐릭터 이미지 & 말풍선 리액션 (★여기 수정★)
+        // 🎬 캐릭터 리액션 연출 및 애니메이션 타이머
         // ==========================================
         if (hasPackedBurger) {
             if (reactionTimeout) clearTimeout(reactionTimeout); 
 
-            // 1) 장난 버거(빵/패티 부족)가 하나라도 포함된 경우 -> 무조건 "분노(Jangnan)"
             if (isJangnanAny) {
-                reactionImg.src = 'images/clear_fail.png'; // 분노 이미지 사용 (또는 jangnan용 이미지가 있다면 교체)
+                reactionImg.src = 'images/clear_fail.png'; 
                 dialogueBox.className = 'bubble-bad';
                 dialogueBox.innerText = "지금 장난해?!";
             }
-            // 2) 모든 버거가 0원 처리된 경우 (형편없음) -> "형편없음(Fail)"
             else if (earnedMoneyTotal === 0) {
-                reactionImg.src = 'images/clear_fail.png'; // 실패(분노) 이미지
+                reactionImg.src = 'images/clear_fail.png'; 
                 dialogueBox.className = 'bubble-bad';
                 dialogueBox.innerText = "이딴 걸 먹으라고 준 거야?!";
             }
-            // 3) 제출한 모든 버거가 10000원짜리 황금 레시피인 경우 -> "대만족(Perfect)"
             else if (isPerfectSubmit) {
-                reactionImg.src = 'images/clear_perfect.png'; // 완벽 이미지
+                reactionImg.src = 'images/clear_perfect.png'; 
                 dialogueBox.className = 'bubble-good';
                 dialogueBox.innerText = "이거지! 야르~";
             }
-            // 4) 0원은 아니지만(판매 성공) 퍼펙트는 아닌 경우 (감점 있음) -> "먹을만함(Soso)" ★새로 추가★
             else {
-                reactionImg.src = 'images/clear_soso.png'; // 쩝쩝 이미지가 들어갈 자리
-                dialogueBox.className = 'bubble-good'; // 테두리는 초록색(성공) 유지
-                dialogueBox.innerText = "쩝쩝쩝 먹을만하네"; // 요청하신 대사로 변경
+                reactionImg.src = 'images/clear_soso.png'; 
+                dialogueBox.className = 'bubble-good'; 
+                dialogueBox.innerText = "쩝쩝쩝 먹을만하네"; 
             }
 
             reactionContainer.classList.remove('reaction-hidden');
 
             reactionTimeout = setTimeout(() => {
-                burgerBags.forEach((b, index) => {
-                    bagEls[index].querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
-                });
+                // 💡 [버거 해결 핵심 키] 타이머 종료 시 글자를 초기화하려던 잔재를 삭제했습니다.
+                // 에러가 차단되어 캐릭터 숨김(reaction-hidden) 애니메이션이 정상적으로 실행됩니다!
                 reactionContainer.classList.add('reaction-hidden');
                 dialogueBox.className = '';
                 dialogueBox.innerText = '';
-            }, 1200); // 리액션 시간을 1200ms로 늘려 대사를 읽을 시간을 줌
+            }, 1200); 
         }
     });
 }
@@ -490,7 +472,7 @@ function renderBagStack(bagId) {
     const stackArea = bagEls[bagId].querySelector('.burger-stack');
     stackArea.innerHTML = ''; 
     
-    let currentBottom = 5; 
+    let currentBottom = 60; 
 
     burgerBags[bagId].stack.forEach((layer, index) => {
         const layerDiv = document.createElement('div');
