@@ -4,19 +4,19 @@
 let score = 0;              
 let timeLeft = 1200;        
 let gameInterval = null;    
-let reactionTimeout = null; // 🟢 [추가] 우측 캐릭터 리액션 타이머 꼬임 방지용 스위치
+let reactionTimeout = null; 
 
 let mouseHolding = {
     type: null,        
-    status: null,      
-    clickCount: 0      
+    status: null,       // 기존 채점용 데이터 무결성 유지
+    displayStatus: null // 🥩 마우스 포인터 및 빵봉지 레이어에 렌더링할 '뒷면 고기 상태' 전용 변수
 };
 
 let grillZones = [
-    { id: 0, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0 },
-    { id: 1, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0 },
-    { id: 2, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0 },
-    { id: 3, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0 }
+    { id: 0, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0, frontStatus: 'none' },
+    { id: 1, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0, frontStatus: 'none' },
+    { id: 2, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0, frontStatus: 'none' },
+    { id: 3, isOccupied: false, type: null, time: 0, isFlipped: false, status: 'none', sideTime: 0, frontStatus: 'none' }
 ];
 
 let burgerBags = [
@@ -29,23 +29,33 @@ let burgerBags = [
 const targetRecipe = [
     'bun', 
     'source1_2', 
-    'patty_cooked', 
+    'patty_cooked_cooked', 
     'cheeze', 
     'onion_cooked', 
-    'patty_cooked', 
+    'patty_cooked_cooked', 
     'cheeze', 
     'source2_2', 
     'bun'
 ];
 
 const assetImages = {
-    'bun': 'images/bun1.png',
-    'bun_top': 'images/bun2.png',
+    'bun': 'images/bun.png',               
+    'bun_bottom': 'images/bun1.png',        
+    'bun_top': 'images/bun2.png',           
     'cheeze': 'images/cheeze.png',
+    
     'patty_raw': 'images/patty1.png',
-    'patty_cooked': 'images/patty2.png',
+    'patty_cooked': 'images/patty2.png',    
     'patty_overcooked': 'images/patty3.png',
-    'patty_burned': 'images/patty4.png',
+    'patty_burned': 'images/patty4.png',    
+    
+    'patty_raw_raw': 'images/patty1.png',      
+    'patty_raw_cooked': 'images/patty1.png',   
+    'patty_raw_burned': 'images/patty4.png',   
+    'patty_cooked_raw': 'images/patty1.png',   
+    'patty_cooked_cooked': 'images/patty2.png',
+    'patty_cooked_burned': 'images/patty4.png',
+
     'onion_raw': 'images/onion1.png',
     'onion_cooked': 'images/onion2.png',
     'onion_burned': 'images/onion3.png',
@@ -74,7 +84,6 @@ const sizzleAudio = document.getElementById('sizzle-sound');
 const bellAudio = document.getElementById('bell-sound');
 const squirtAudio = document.getElementById('squirt-sound');
 
-// 🟢 [추가] 우측 하단 리액션 전용 DOM 요소 매칭
 const reactionContainer = document.getElementById('reaction-container');
 const reactionImg = document.getElementById('reaction-img');
 
@@ -84,24 +93,21 @@ const reactionImg = document.getElementById('reaction-img');
 function init() {
     window.addEventListener('contextmenu', e => e.preventDefault());
 
-    // 🔊 [안전장치 강화] 유저가 화면 어디든 처음 터치/클릭하는 순간 오디오 락을 완전히 해제합니다.
     const unlockAndPlayBGM = () => {
         if (bgmAudio) {
-            bgmAudio.volume = 0.5; // 철판 소리가 잘 들리도록 배경음은 은은하게 고정
+            bgmAudio.volume = 0.5; 
             bgmAudio.play()
                 .then(() => {
                     console.log("🎵 배경음악 재생 성공!");
-                    // 한 번 실행에 성공하면 사운드 해제 이벤트를 깔끔하게 소멸시킴
                     window.removeEventListener('click', unlockAndPlayBGM);
                     window.removeEventListener('mousedown', unlockAndPlayBGM);
                 })
                 .catch(error => {
-                    console.error("🚨 오디오 락 해제 실패, 다시 시도합니다. 원인:", error);
+                    console.error("🚨 오디오 락 해제 실패:", error);
                 });
         }
     };
 
-    // 클릭, 마우스 다운 이벤트 둘 다 대기 시켜 락을 무조건 해제하게 함
     window.addEventListener('click', unlockAndPlayBGM);
     window.addEventListener('mousedown', unlockAndPlayBGM);
 
@@ -133,8 +139,8 @@ function setupEvents() {
             const type = item.getAttribute('data-type');
             mouseHolding.type = type;
             mouseHolding.status = (type === 'patty' || type === 'onion') ? 'raw' : 'normal';
-            mouseHolding.clickCount = 0;
-            updateFollower(e); // 💡 쿵짝을 맞추기 위해 클릭 이벤트(e) 주입
+            mouseHolding.displayStatus = (type === 'patty' || type === 'onion') ? 'raw' : 'normal'; 
+            updateFollower(e); 
         });
     });
 
@@ -144,45 +150,89 @@ function setupEvents() {
             const id = parseInt(zoneEl.getAttribute('data-id'));
             const zone = grillZones[id];
 
+            // 1️⃣ 철판이 비어있을 때
             if (!zone.isOccupied) {
-                if (mouseHolding.type === 'patty' || mouseHolding.type === 'onion') {
+                // 🛑 재조리 불가 핵심 로직 적용: 양파는 기존대로 올리되, 패티는 트레이에서 갓 집어든 생고기('raw') 상태일 때만 올릴 수 있게 차단합니다.
+                if (mouseHolding.type === 'onion' || (mouseHolding.type === 'patty' && mouseHolding.status === 'raw')) {
                     zone.isOccupied = true;
                     zone.type = mouseHolding.type;
                     zone.time = 0;
                     zone.sideTime = 0;
                     zone.isFlipped = false;
                     zone.status = 'raw';
+                    zone.frontStatus = 'none'; 
                     zoneEl.style.backgroundImage = `url('${assetImages[zone.type + '_raw']}')`;
                     clearMouseHolding();
                 }
-            } else {
-                if (!mouseHolding.type) {
-                    if (zone.type === 'patty' && !zone.isFlipped) {
+            } 
+            // 2️⃣ 철판에 재료가 구워지고 있을 때
+            else {
+                const isHandEmpty = !mouseHolding.type;
+                const isHoldingSource = (mouseHolding.type === 'source1' || mouseHolding.type === 'source2');
+
+                if (isHandEmpty || isHoldingSource) {
+                    
+                    // 🥩 [패티 뒤집기] 패티가 아직 첫 면을 굽는 중이고 아직 타지 않았다면 뒤집기 가능
+                    if (zone.type === 'patty' && !zone.isFlipped && zone.status !== 'burned') {
                         if (zone.sideTime >= 2 && zone.sideTime <= 3) {
-                            zone.isFlipped = true;
-                            zone.sideTime = 0;
-                            zone.status = 'raw'; 
-                            zoneEl.style.borderStyle = 'solid'; 
-                            zoneEl.style.borderColor = '#8b5a2b';
+                            zone.frontStatus = 'cooked'; 
+                        } else if (zone.sideTime > 3) {
+                            zone.frontStatus = 'burned'; 
                         } else {
-                            zone.isFlipped = true;
-                            zone.sideTime = 0;
-                            zone.status = (zone.sideTime > 3) ? 'burned' : 'overcooked';
-                            zoneEl.style.borderStyle = 'solid';
+                            zone.frontStatus = 'raw';    
                         }
-                    } else {
-                        mouseHolding.type = zone.type;
-                        mouseHolding.status = zone.status;
-                        mouseHolding.clickCount = 0;
+
+                        zone.isFlipped = true;
+                        zone.sideTime = 0; 
                         
+                        if (zone.frontStatus === 'burned') {
+                            zone.status = 'burned';
+                        } else {
+                            zone.status = 'raw'; 
+                        }
+                        zoneEl.style.borderStyle = 'solid'; 
+                        zoneEl.style.borderColor = '#8b5a2b';
+                    } 
+                    // 🧺 [스마트 즉시 수거 시스템] 이미 뒤집었거나, 한 면이라도 탔거나, 양파 슬라이스일 때 즉시 수거
+                    else {
+                        if (isHoldingSource) {
+                            clearMouseHolding(); 
+                        }
+
+                        mouseHolding.type = zone.type;
+                        
+                        if (zone.type === 'patty') {
+                            let backStatus = 'raw';
+                            if (zone.isFlipped) {
+                                if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                                    backStatus = 'cooked'; 
+                                } else if (zone.sideTime > 3) {
+                                    backStatus = 'burned'; 
+                                }
+                            }
+
+                            if (zone.frontStatus === 'burned' || zone.status === 'burned' || backStatus === 'burned') {
+                                mouseHolding.status = 'burned'; 
+                                mouseHolding.displayStatus = 'burned'; 
+                            } else {
+                                mouseHolding.status = `${zone.frontStatus}_${backStatus}`;
+                                mouseHolding.displayStatus = backStatus;
+                            }
+                        } else {
+                            mouseHolding.status = zone.status;
+                            mouseHolding.displayStatus = zone.status;
+                        }
+                        
+                        // 철판 리셋
                         zone.isOccupied = false;
                         zone.type = null;
                         zone.status = 'none';
+                        zone.frontStatus = 'none';
                         zone.time = 0;
                         zone.sideTime = 0;
                         zone.isFlipped = false;
                         elReset(zoneEl, id);
-                        updateFollower(e); // 💡 철판에서 익은 고기 집어올릴 때도 버그 방지 주입
+                        updateFollower(e); 
                     }
                 }
             }
@@ -200,32 +250,32 @@ function setupEvents() {
             if (mouseHolding.type) {
                 let layerName = mouseHolding.type;
                 
-                if (mouseHolding.type === 'patty' || mouseHolding.type === 'onion') {
+                if (mouseHolding.type === 'patty') {
+                    layerName += `_${mouseHolding.status}_${mouseHolding.displayStatus}`;
+                } else if (mouseHolding.type === 'onion') {
                     layerName += `_${mouseHolding.status}`;
                 }
+                
                 if (mouseHolding.type === 'source1' || mouseHolding.type === 'source2') {
-                    if (mouseHolding.clickCount < 3) {
+                    if (squirtAudio) {
+                        squirtAudio.currentTime = 0; 
+                        squirtAudio.volume = 0.5;    
+                        squirtAudio.play().catch(err => console.log(err));
+                    }
 
-                        // 🔊 [🟢 추가] 소스통을 짤 때 공백 없는 'squirt.mp3'를 즉시 연사 재생!
-                        if (squirtAudio) {
-                            squirtAudio.currentTime = 0; // 광클해도 소리가 안 씹히고 처음부터 다시 터짐
-                            squirtAudio.volume = 0.5;    // 효과음 볼륨
-                            squirtAudio.play().catch(err => console.log(err));
-                        }
-                        
-                        mouseHolding.clickCount++;
-                        updateFollower(e); // 💡 소스 연타할 때도 마우스 위치 갱신 주입
-                        
-                        const topIndex = bag.stack.findIndex((item, index) => index === bag.stack.length - 1 && item.startsWith(mouseHolding.type));
-                        if (topIndex !== -1) {
-                            bag.stack[topIndex] = `${mouseHolding.type}_${mouseHolding.clickCount}`;
+                    const topItem = bag.stack.length > 0 ? bag.stack[bag.stack.length - 1] : "";
+
+                    if (topItem.startsWith(mouseHolding.type)) {
+                        const currentCount = parseInt(topItem.split('_')[1]);
+                        if (currentCount < 3) {
+                            bag.stack[bag.stack.length - 1] = `${mouseHolding.type}_${currentCount + 1}`;
                             renderBagStack(id);
-                            return;
+                            return; 
                         } else {
-                            layerName += `_${mouseHolding.clickCount}`;
+                            return; 
                         }
                     } else {
-                        return;
+                        layerName += `_1`;
                     }
                 }
 
@@ -245,24 +295,21 @@ function setupEvents() {
         });
     });
 
-    // 서빙 벨 정산 및 리액션 제어
     bellBtn.addEventListener('click', () => {
-        // 🔊 [🟢 추가] 벨 버튼을 클릭한 순간 "땡~" 소리를 즉시 재생!
         if (bellAudio) {
-            bellAudio.currentTime = 0; // 벨을 연타해도 소리가 안 씹히고 처음부터 다시 나도록 초기화
-            bellAudio.volume = 1;    // 소리 크기 조절
-            bellAudio.play().catch(e => console.log("벨 소리 재생 오류:", e));
+            bellAudio.currentTime = 0; 
+            bellAudio.volume = 1;    
+            bellAudio.play().catch(e => console.log(e));
         }
 
-        let hasPackedBurger = false; // 이번 제출에 포장된 버거가 실존하는지 체크
-        let isPerfectSubmit = true;  // 제출한 버거가 전부 만점(10,000원)인지 체크
+        let hasPackedBurger = false; 
+        let isPerfectSubmit = true;  
 
         burgerBags.forEach((bag, index) => {
             if (bag.isPacked) {
                 hasPackedBurger = true;
                 const earnedMoney = calculateBurgerPrice(bag.stack);
                 
-                // 🎯 1원이라도 감점됐다면 완벽 성공 플래그를 꺼버림
                 if (earnedMoney < 10000) {
                     isPerfectSubmit = false;
                 }
@@ -280,20 +327,17 @@ function setupEvents() {
         
         scoreEl.innerText = score + "원";
 
-        // 🔊 [🟢 추가] 제출한 버거가 있을 때만 우측 하단에 PNG 캐릭터를 1초간 노출
         if (hasPackedBurger) {
-            if (reactionTimeout) clearTimeout(reactionTimeout); // 이전 타이머 리셋 안전장치
+            if (reactionTimeout) clearTimeout(reactionTimeout); 
 
             if (isPerfectSubmit) {
-                reactionImg.src = 'images/clear_perfect.png'; // 1번 완벽 먹방 PNG
+                reactionImg.src = 'images/clear_perfect.png'; 
             } else {
-                reactionImg.src = 'images/clear_fail.png';    // 2번 당황하는 늘님 PNG
+                reactionImg.src = 'images/clear_fail.png';    
             }
 
-            // 숨김 해제 -> 우측 아래에서 스르륵 등장
             reactionContainer.classList.remove('reaction-hidden');
 
-            // ⏱️ 정확히 1초(1000ms) 뒤에 다시 스무스하게 아래로 숨김
             reactionTimeout = setTimeout(() => {
                 reactionContainer.classList.add('reaction-hidden');
             }, 1000);
@@ -306,6 +350,7 @@ function setupEvents() {
 // ==========================================
 function calculateBurgerPrice(userStack) {
     let price = 10000; 
+    
     const requiredCategories = ['bun', 'source1', 'source2', 'cheeze', 'patty', 'onion'];
     requiredCategories.forEach(category => {
         const hasIngredient = userStack.some(item => item.startsWith(category));
@@ -313,8 +358,46 @@ function calculateBurgerPrice(userStack) {
     });
 
     userStack.forEach(item => {
-        if (item.includes('_raw') || item.includes('_overcooked') || item.includes('_burned')) price -= 500;
-        if (item.includes('_1') || item.includes('_3')) price -= 500;
+        if (item.startsWith('source1_1') || item.startsWith('source1_3')) price -= 500;
+        if (item.startsWith('source2_1') || item.startsWith('source2_3')) price -= 500;
+        
+        if (item.startsWith('onion_burned')) price -= 500;
+        if (item.startsWith('onion_raw')) price -= 500;
+    });
+
+    userStack.forEach(item => {
+        if (item.startsWith('patty_')) {
+            const pattyType = item.replace('patty_', ''); 
+            
+            const parts = pattyType.split('_');
+            let finalPattyKey = pattyType;
+            if (parts.length >= 3) {
+                finalPattyKey = `${parts[0]}_${parts[1]}`;
+            }
+
+            switch(finalPattyKey) {
+                case 'raw_raw':     
+                    price -= 1000;  
+                    break;
+                case 'raw_cooked':  
+                    price -= 500;   
+                    break;
+                case 'raw_burned':  
+                    price -= 1000;  
+                    break;
+                case 'cooked_raw':  
+                    price -= 500;   
+                    break;
+                case 'cooked_cooked': 
+                    break;
+                case 'cooked_burned': 
+                    price -= 1000;  
+                    break;
+                case 'burned':      
+                    price -= 2000;  
+                    break;
+            }
+        }
     });
 
     let isOrderPerfect = true;
@@ -322,7 +405,12 @@ function calculateBurgerPrice(userStack) {
         isOrderPerfect = false;
     } else {
         for (let i = 0; i < targetRecipe.length; i++) {
-            if (userStack[i] !== targetRecipe[i]) {
+            let userLayer = userStack[i];
+            if (userLayer.startsWith('patty_')) {
+                const p = userLayer.split('_');
+                if (p.length >= 4) userLayer = `${p[0]}_${p[1]}_${p[2]}`;
+            }
+            if (userLayer !== targetRecipe[i]) {
                 isOrderPerfect = false;
                 break;
             }
@@ -339,19 +427,18 @@ function calculateBurgerPrice(userStack) {
 function clearMouseHolding() {
     mouseHolding.type = null;
     mouseHolding.status = null;
-    mouseHolding.clickCount = 0;
+    mouseHolding.displayStatus = null;
     follower.style.display = 'none';
     follower.style.backgroundImage = 'none';
 }
 
-// 🚨 [수정 완료] 클릭 이벤트를 매개변수로 받아 즉시 추적하는 지능형 함수
 function updateFollower(e) {
     if (mouseHolding.type) {
         follower.style.display = 'block';
         let imagePath = "";
 
         if (mouseHolding.type === "source1") {
-            imagePath = "images/red_source.png";      // 소스 자국이 아니라 병
+            imagePath = "images/red_source.png";      
         }
         else if (mouseHolding.type === "source2") {
             imagePath = "images/white_source.png";
@@ -359,27 +446,25 @@ function updateFollower(e) {
         else {
             let key = mouseHolding.type;
 
-            if (mouseHolding.type === "patty" || mouseHolding.type === "onion") {
-                key += `_${mouseHolding.status}`;
+            if (mouseHolding.type === "patty") {
+                key += `_${mouseHolding.displayStatus}`;
+            } else if (mouseHolding.type === "onion") {
+                const shortStatus = mouseHolding.status.split('_')[0];
+                key += `_${shortStatus}`;
             }
 
-            imagePath = assetImages[key];
+            imagePath = assetImages[key] || assetImages[mouseHolding.type];
         }
 
         follower.style.backgroundImage = `url('${imagePath}')`;
-        // 소스통이면 병을 기울여서 보여줌
-        if (mouseHolding.type === "source1" ||
-            mouseHolding.type === "source2") {
-
-            follower.style.transform =
-                "translate(-20px,-45px) rotate(-135deg)";
+        
+        if (mouseHolding.type === "source1" || mouseHolding.type === "source2") {
+            follower.style.transform = "translate(-20px,-45px) rotate(-135deg)";
         }
         else {
-            follower.style.transform =
-                "translate(-27px,-27px)";
+            follower.style.transform = "translate(-27px,-27px)";
         }
 
-        // 🎯 핵심 치료 기믹: 마우스가 1픽셀이라도 움직이기 전에 클릭한 그 순간 좌표를 대입합니다.
         if (e) {
             const rect = container.getBoundingClientRect();
             follower.style.left = (e.clientX - rect.left) + 'px';
@@ -397,47 +482,26 @@ function elReset(zoneEl, id) {
 }
 
 // ====================================================================
-// 🍔 7. 유저 황금 세팅 하이브리드 조합형 렌더링 함수 (변동 없음)
+// 🍔 7. 유저 황금 세팅 하이브리드 조합형 렌더링 함수
 // ====================================================================
 function renderBagStack(bagId) {
     const stackArea = bagEls[bagId].querySelector('.burger-stack');
     stackArea.innerHTML = ''; 
     
     const combinationGaps = {
-        'bun_bottom_source1': 2,
-        'bun_bottom_source2': 2,
-        'bun_bottom_cheeze': 4,
-        'bun_bottom_onion': 4,
-        'bun_bottom_patty': 14,
-
-        'patty_cheeze': 3,
-        'patty_onion': 4,
-        'patty_source1': 2,
-        'patty_source2': 2,
-        'patty_bun_top': 3,
-
-        'source1_patty': 8,
-        'cheeze_onion': 3,
-        'onion_patty': 12,
-        'cheeze_source1': 2,
-        'cheeze_source2': 2,
-        'cheeze_patty' : 10,
-
-        'source1_bun_top': 3,
-        'source2_bun_top': 3,
-        'cheeze_bun_top': 3,
-        'onion_bun_top': 3,
-        'cheeze_bun_top': 3,
+        'bun_bottom_source1': 2, 'bun_bottom_source2': 2, 'bun_bottom_cheeze': 4, 'bun_bottom_onion': 4, 'bun_bottom_patty': 14,
+        'patty_raw_raw_cheeze': 3, 'patty_raw_cooked_cheeze': 3, 'patty_cooked_raw_cheeze': 3, 'patty_cooked_cooked_cheeze': 3,
+        'patty_raw_raw_onion': 4, 'patty_raw_cooked_onion': 4, 'patty_cooked_raw_onion': 4, 'patty_cooked_cooked_onion': 4,
+        'patty_raw_raw_source1': 2, 'patty_raw_cooked_source1': 2, 'patty_cooked_raw_source1': 2, 'patty_cooked_cooked_source1': 2,
+        'patty_raw_raw_source2': 2, 'patty_raw_cooked_source2': 2, 'patty_cooked_raw_source2': 2, 'patty_cooked_cooked_source2': 2,
+        'patty_raw_raw_bun_top': 3, 'patty_raw_cooked_bun_top': 3, 'patty_cooked_raw_bun_top': 3, 'patty_cooked_cooked_bun_top': 3,
+        'patty_cheeze': 3, 'patty_onion': 4, 'patty_source1': 2, 'patty_source2': 2, 'patty_bun_top': 3,
+        'source1_patty': 8, 'cheeze_onion': 3, 'onion_patty': 12, 'cheeze_source1': 2, 'cheeze_source2': 2, 'cheeze_patty' : 10,
+        'source1_bun_top': 3, 'source2_bun_top': 3, 'cheeze_bun_top': 3, 'onion_bun_top': 3,
     };
 
     const defaultThickness = {
-        'bun_bottom': 5,
-        'bun_top': 5,
-        'patty': 10,
-        'cheeze': 4,
-        'onion': 5,
-        'source1': 1,
-        'source2': 1
+        'bun_bottom': 5, 'bun_top': 5, 'patty': 10, 'cheeze': 4, 'onion': 5, 'source1': 1, 'source2': 1
     };
 
     let currentBottom = 5; 
@@ -446,22 +510,28 @@ function renderBagStack(bagId) {
         const layerDiv = document.createElement('div');
         layerDiv.className = 'layer';
         
-        const rawType = layer.split('_')[0]; 
+        const parts = layer.split('_');
+        const rawType = parts[0]; 
         let imgKey = layer;
         let currentKey = rawType;
 
         if (rawType === 'bun') {
             if (index === burgerBags[bagId].stack.length - 1 && index > 0) {
-                imgKey = 'bun_top';
+                imgKey = 'bun_top';        
                 currentKey = 'bun_top';
                 layerDiv.classList.add('layer-bun-top');
             } else {
+                imgKey = 'bun_bottom';     
                 currentKey = 'bun_bottom';
                 layerDiv.classList.add('layer-bun-bottom');
             }
         } else if (rawType === 'source1' || rawType === 'source2') {
             currentKey = rawType;
             layerDiv.classList.add('layer-source');
+        } else if (rawType === 'patty') {
+            layerDiv.classList.add(`layer-${rawType}`);
+            const backStatus = parts[3] || parts[1];
+            imgKey = `patty_${backStatus}`; 
         } else {
             layerDiv.classList.add(`layer-${rawType}`);
         }
@@ -469,7 +539,7 @@ function renderBagStack(bagId) {
         if (index > 0) {
             const previousLayer = burgerBags[bagId].stack[index - 1];
             const prevType = previousLayer.split('_')[0]; 
-            let prevKey = prevType;
+            let prevKey = previousLayer; 
 
             if (prevType === 'bun' && index - 1 === 0) {
                 prevKey = 'bun_bottom';
@@ -477,15 +547,20 @@ function renderBagStack(bagId) {
                 prevKey = prevType;
             }
 
-            const comboName = `${prevKey}_${currentKey}`;
+            let comboName = `${prevKey}_${currentKey}`;
             let gap = 0;
 
             if (combinationGaps[comboName] !== undefined) {
                 gap = combinationGaps[comboName];
             } else {
-                const prevThick = defaultThickness[prevKey] !== undefined ? defaultThickness[prevKey] : 4;
-                const currThick = defaultThickness[currentKey] !== undefined ? defaultThickness[currentKey] : 4;
-                gap = prevThick + currThick; 
+                const fallbackKey = `${prevType}_${currentKey}`;
+                if (combinationGaps[fallbackKey] !== undefined) {
+                    gap = combinationGaps[fallbackKey];
+                } else {
+                    const prevThick = defaultThickness[prevKey] !== undefined ? defaultThickness[prevKey] : 4;
+                    const currThick = defaultThickness[currentKey] !== undefined ? defaultThickness[currentKey] : 4;
+                    gap = prevThick + currThick; 
+                }
             }
             
             currentBottom += gap;
@@ -494,7 +569,7 @@ function renderBagStack(bagId) {
         layerDiv.style.bottom = currentBottom + 'px';
         layerDiv.style.zIndex = index + 1; 
         
-        layerDiv.innerText = layer;
+        layerDiv.innerText = parts[0] + (parts[1] ? `_${parts[1]}` : '');
         layerDiv.style.backgroundImage = `url('${assetImages[imgKey] || assetImages[rawType]}')`;
         stackArea.appendChild(layerDiv);
     });
@@ -514,16 +589,22 @@ function startGameLoop() {
             location.reload();
         }
 
-        // 1. 루프 시작 전 감시 변수를 false로 초기화
         let anyItemCooking = false;
 
-        // 2. 4개의 철판 구역을 '먼저' 싹 훑으며 상태만 계산합니다.
         grillZones.forEach((zone, index) => {
             const el = grillEls[index];
             if (zone.isOccupied) {
+                const statusSpan = el.querySelector('.status');
+
+                if (zone.status === 'burned') {
+                    statusSpan.innerText = `${zone.type === 'patty' ? '고기' : '양파'} 완전히 탐! [수거만 가능]`;
+                    el.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
+                    el.classList.remove('cooking');
+                    return;
+                }
+
                 zone.time += 0.1;
                 zone.sideTime += 0.1;
-                const statusSpan = el.querySelector('.status');
 
                 if (zone.type === 'patty') {
                     if (!zone.isFlipped) {
@@ -531,29 +612,21 @@ function startGameLoop() {
                             zone.status = 'raw';
                             statusSpan.innerText = `첫면 굽는중 ${zone.sideTime.toFixed(1)}초`;
                         } else if (zone.sideTime >= 2 && zone.sideTime <= 3) {
-                            zone.status = 'raw';
+                            zone.status = 'raw'; 
                             statusSpan.innerText = `🔥 뒤집어! ${zone.sideTime.toFixed(1)}초`;
                         } else {
-                            zone.status = 'burned';
-                            statusSpan.innerText = `첫면 탐 ${zone.sideTime.toFixed(1)}초`;
+                            zone.status = 'burned'; 
+                            zone.frontStatus = 'burned';
                         }
                     } else {
-                        if (zone.status === 'burned') {
-                            statusSpan.innerText = `이미 탐 ${zone.sideTime.toFixed(1)}초`;
+                        if (zone.sideTime < 2) {
+                            zone.status = 'raw';
+                            statusSpan.innerText = `뒷면 굽는중 ${zone.sideTime.toFixed(1)}초`;
+                        } else if (zone.sideTime >= 2 && zone.sideTime <= 3) {
+                            zone.status = 'cooked';
+                            statusSpan.innerText = `✨ 뒷면 완벽! ${zone.sideTime.toFixed(1)}초`;
                         } else {
-                            if (zone.sideTime < 2) {
-                                zone.status = 'raw';
-                                statusSpan.innerText = `뒷면 굽는중 ${zone.sideTime.toFixed(1)}초`;
-                            } else if (zone.sideTime >= 2 && zone.sideTime <= 3) {
-                                zone.status = 'cooked';
-                                statusSpan.innerText = `✨ 완벽! 수거해! ${zone.sideTime.toFixed(1)}초`;
-                            } else if (zone.sideTime > 3 && zone.sideTime <= 5) {
-                                zone.status = 'overcooked';
-                                statusSpan.innerText = `오버쿡 ${zone.sideTime.toFixed(1)}초`;
-                            } else {
-                                zone.status = 'burned';
-                                statusSpan.innerText = `탐 ${zone.sideTime.toFixed(1)}초`;
-                            }
+                            zone.status = 'burned'; 
                         }
                     }
                 } else if (zone.type === 'onion') {
@@ -567,29 +640,26 @@ function startGameLoop() {
                     statusSpan.innerText = `양파[${zone.status}] ${zone.time.toFixed(1)}초`;
                 }
 
-                // 이미지 업데이트
-                let currentKey = `${zone.type}_${zone.status}`;
-                if (assetImages[currentKey]) {
-                    el.style.backgroundImage = `url('${assetImages[currentKey]}')`;
-                }
-
-                // 타지 않은 정상 재료가 올려져 있다면 불빛 켜고 감시 변수 ON
-                if (zone.status !== 'burned' && zone.status !== 'none') {
+                if (zone.status !== 'burned') {
+                    let currentKey = `${zone.type}_${zone.status}`;
+                    if (assetImages[currentKey]) {
+                        el.style.backgroundImage = `url('${assetImages[currentKey]}')`;
+                    }
                     el.classList.add('cooking');
                     anyItemCooking = true; 
                 } else {
+                    el.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
                     el.classList.remove('cooking');
                 }
             } else {
                 el.classList.remove('cooking');
             }
-        }); // 🚨 grillZones.forEach 반복문이 여기서 완벽하게 끝납니다.
+        }); 
 
-        // 🔊 3. [최종 판정] 4개 구역을 다 확인한 '후'에 소리를 딱 한 번 켜거나 끕니다!
         if (anyItemCooking) {
             if (sizzleAudio.paused) {
                 sizzleAudio.volume = 0.3; 
-                sizzleAudio.play().catch(e => console.log("오디오 재생 제한 우회 중...", e));
+                sizzleAudio.play().catch(e => console.log(e));
             }
         } else {
             if (!sizzleAudio.paused) {
