@@ -26,47 +26,6 @@ let burgerBags = [
     { id: 3, stack: [], isPacked: false }
 ];
 
-const targetRecipe = [
-    'bun', 
-    'source1_2', 
-    'patty_cooked_cooked', 
-    'cheeze', 
-    'onion_cooked', 
-    'patty_cooked_cooked', 
-    'cheeze', 
-    'source2_2', 
-    'bun'
-];
-
-const assetImages = {
-    'bun': 'images/bun.png',               
-    'bun_bottom': 'images/bun1.png',        
-    'bun_top': 'images/bun2.png',           
-    'cheeze': 'images/cheeze.png',
-    
-    'patty_raw': 'images/patty1.png',
-    'patty_cooked': 'images/patty2.png',    
-    'patty_overcooked': 'images/patty3.png',
-    'patty_burned': 'images/patty4.png',    
-    
-    'patty_raw_raw': 'images/patty1.png',      
-    'patty_raw_cooked': 'images/patty1.png',   
-    'patty_raw_burned': 'images/patty4.png',   
-    'patty_cooked_raw': 'images/patty1.png',   
-    'patty_cooked_cooked': 'images/patty2.png',
-    'patty_cooked_burned': 'images/patty4.png',
-
-    'onion_raw': 'images/onion1.png',
-    'onion_cooked': 'images/onion2.png',
-    'onion_burned': 'images/onion3.png',
-    'source1_1': 'images/red_source1.png',
-    'source1_2': 'images/red_source2.png',
-    'source1_3': 'images/red_source3.png',
-    'source2_1': 'images/white_source1.png',
-    'source2_2': 'images/white_source2.png',
-    'source2_3': 'images/white_source3.png'
-};
-
 // ==========================================
 // 2. DOM 요소 캐싱
 // ==========================================
@@ -79,11 +38,6 @@ const grillEls = document.querySelectorAll('.grill-zone');
 const bagEls = document.querySelectorAll('.bag-zone');
 const trayItems = document.querySelectorAll('.tray-item');
 
-const bgmAudio = document.getElementById('background-bgm');
-const sizzleAudio = document.getElementById('sizzle-sound');
-const bellAudio = document.getElementById('bell-sound');
-const squirtAudio = document.getElementById('squirt-sound');
-
 const reactionContainer = document.getElementById('reaction-container');
 const reactionImg = document.getElementById('reaction-img');
 
@@ -93,19 +47,11 @@ const reactionImg = document.getElementById('reaction-img');
 function init() {
     window.addEventListener('contextmenu', e => e.preventDefault());
 
+    // 오디오 파일(audio.js)에 구현된 BGM 재생 함수 호출
     const unlockAndPlayBGM = () => {
-        if (bgmAudio) {
-            bgmAudio.volume = 0.5; 
-            bgmAudio.play()
-                .then(() => {
-                    console.log("🎵 배경음악 재생 성공!");
-                    window.removeEventListener('click', unlockAndPlayBGM);
-                    window.removeEventListener('mousedown', unlockAndPlayBGM);
-                })
-                .catch(error => {
-                    console.error("🚨 오디오 락 해제 실패:", error);
-                });
-        }
+        playBackgroundBGM();
+        window.removeEventListener('click', unlockAndPlayBGM);
+        window.removeEventListener('mousedown', unlockAndPlayBGM);
     };
 
     window.addEventListener('click', unlockAndPlayBGM);
@@ -152,7 +98,6 @@ function setupEvents() {
 
             // 1️⃣ 철판이 비어있을 때
             if (!zone.isOccupied) {
-                // 🛑 재조리 불가 핵심 로직 적용: 양파는 기존대로 올리되, 패티는 트레이에서 갓 집어든 생고기('raw') 상태일 때만 올릴 수 있게 차단합니다.
                 if (mouseHolding.type === 'onion' || (mouseHolding.type === 'patty' && mouseHolding.status === 'raw')) {
                     zone.isOccupied = true;
                     zone.type = mouseHolding.type;
@@ -257,11 +202,8 @@ function setupEvents() {
                 }
                 
                 if (mouseHolding.type === 'source1' || mouseHolding.type === 'source2') {
-                    if (squirtAudio) {
-                        squirtAudio.currentTime = 0; 
-                        squirtAudio.volume = 0.5;    
-                        squirtAudio.play().catch(err => console.log(err));
-                    }
+                    // audio.js의 소스 사운드 함수 호출
+                    playSquirtSound();
 
                     const topItem = bag.stack.length > 0 ? bag.stack[bag.stack.length - 1] : "";
 
@@ -296,11 +238,8 @@ function setupEvents() {
     });
 
     bellBtn.addEventListener('click', () => {
-        if (bellAudio) {
-            bellAudio.currentTime = 0; 
-            bellAudio.volume = 1;    
-            bellAudio.play().catch(e => console.log(e));
-        }
+        // audio.js의 벨 사운드 함수 호출
+        playBellSound();
 
         let hasPackedBurger = false; 
         let isPerfectSubmit = true;  
@@ -346,7 +285,7 @@ function setupEvents() {
 }
 
 // ==========================================
-// 5. 정산 채점 시스템
+// 5. 정산 채점 시스템 (constants.js의 정적 데이터를 기반으로 작동)
 // ==========================================
 function calculateBurgerPrice(userStack) {
     let price = 10000; 
@@ -376,26 +315,13 @@ function calculateBurgerPrice(userStack) {
             }
 
             switch(finalPattyKey) {
-                case 'raw_raw':     
-                    price -= 1000;  
-                    break;
-                case 'raw_cooked':  
-                    price -= 500;   
-                    break;
-                case 'raw_burned':  
-                    price -= 1000;  
-                    break;
-                case 'cooked_raw':  
-                    price -= 500;   
-                    break;
-                case 'cooked_cooked': 
-                    break;
-                case 'cooked_burned': 
-                    price -= 1000;  
-                    break;
-                case 'burned':      
-                    price -= 2000;  
-                    break;
+                case 'raw_raw':     price -= 1000;  break;
+                case 'raw_cooked':  price -= 500;   break;
+                case 'raw_burned':  price -= 1000;  break;
+                case 'cooked_raw':  price -= 500;   break;
+                case 'cooked_cooked': break;
+                case 'cooked_burned': price -= 1000;  break;
+                case 'burned':      price -= 2000;  break;
             }
         }
     });
@@ -481,29 +407,13 @@ function elReset(zoneEl, id) {
     zoneEl.innerHTML = `구역 ${id+1}<br><span class="status">비어있음</span>`;
 }
 
-// ====================================================================
-// 🍔 7. 유저 황금 세팅 하이브리드 조합형 렌더링 함수
-// ====================================================================
+// ==========================================
+// 🍔 7. 조합형 렌더링 함수 (constants.js 데이터를 사용)
+// ==========================================
 function renderBagStack(bagId) {
     const stackArea = bagEls[bagId].querySelector('.burger-stack');
     stackArea.innerHTML = ''; 
     
-    const combinationGaps = {
-        'bun_bottom_source1': 2, 'bun_bottom_source2': 2, 'bun_bottom_cheeze': 4, 'bun_bottom_onion': 4, 'bun_bottom_patty': 14,
-        'patty_raw_raw_cheeze': 3, 'patty_raw_cooked_cheeze': 3, 'patty_cooked_raw_cheeze': 3, 'patty_cooked_cooked_cheeze': 3,
-        'patty_raw_raw_onion': 4, 'patty_raw_cooked_onion': 4, 'patty_cooked_raw_onion': 4, 'patty_cooked_cooked_onion': 4,
-        'patty_raw_raw_source1': 2, 'patty_raw_cooked_source1': 2, 'patty_cooked_raw_source1': 2, 'patty_cooked_cooked_source1': 2,
-        'patty_raw_raw_source2': 2, 'patty_raw_cooked_source2': 2, 'patty_cooked_raw_source2': 2, 'patty_cooked_cooked_source2': 2,
-        'patty_raw_raw_bun_top': 3, 'patty_raw_cooked_bun_top': 3, 'patty_cooked_raw_bun_top': 3, 'patty_cooked_cooked_bun_top': 3,
-        'patty_cheeze': 3, 'patty_onion': 4, 'patty_source1': 2, 'patty_source2': 2, 'patty_bun_top': 3,
-        'source1_patty': 8, 'cheeze_onion': 3, 'onion_patty': 12, 'cheeze_source1': 2, 'cheeze_source2': 2, 'cheeze_patty' : 10,
-        'source1_bun_top': 3, 'source2_bun_top': 3, 'cheeze_bun_top': 3, 'onion_bun_top': 3,
-    };
-
-    const defaultThickness = {
-        'bun_bottom': 5, 'bun_top': 5, 'patty': 10, 'cheeze': 4, 'onion': 5, 'source1': 1, 'source2': 1
-    };
-
     let currentBottom = 5; 
 
     burgerBags[bagId].stack.forEach((layer, index) => {
@@ -558,8 +468,7 @@ function renderBagStack(bagId) {
                     gap = combinationGaps[fallbackKey];
                 } else {
                     const prevThick = defaultThickness[prevKey] !== undefined ? defaultThickness[prevKey] : 4;
-                    const currThick = defaultThickness[currentKey] !== undefined ? defaultThickness[currentKey] : 4;
-                    gap = prevThick + currThick; 
+                    gap = prevThick + 4; 
                 }
             }
             
@@ -656,17 +565,8 @@ function startGameLoop() {
             }
         }); 
 
-        if (anyItemCooking) {
-            if (sizzleAudio.paused) {
-                sizzleAudio.volume = 0.3; 
-                sizzleAudio.play().catch(e => console.log(e));
-            }
-        } else {
-            if (!sizzleAudio.paused) {
-                sizzleAudio.pause();
-                sizzleAudio.currentTime = 0; 
-            }
-        }
+        // audio.js에 이관된 치지직 효과음 함수 호출
+        handleSizzleSound(anyItemCooking);
 
     }, 100);
 }
