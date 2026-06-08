@@ -475,11 +475,22 @@ function renderBagStack(bagId) {
         let currentKey = rawType;
 
         if (rawType === 'bun') {
-            if (index === burgerBags[bagId].stack.length - 1 && index > 0) {
+            // 💡 스택 내부에서 '현재 빵보다 먼저 들어간 빵'이 존재하는지 확인합니다.
+            let hasPreviousBun = false;
+            for (let i = 0; i < index; i++) {
+                if (burgerBags[bagId].stack[i].startsWith('bun')) {
+                    hasPreviousBun = true;
+                    break;
+                }
+            }
+
+            if (hasPreviousBun) {
+                // 이미 아래에 빵이 한 개 이상 깔려있다면 이번 빵은 무조건 '위에 빵'
                 imgKey = 'bun_top';        
                 currentKey = 'bun_top';
                 layerDiv.classList.add('layer-bun-top');
             } else {
+                // 이 봉지에서 처음으로 조립된 첫 번째 빵이라면 무조건 '아래 빵'으로 고정!
                 imgKey = 'bun_bottom';     
                 currentKey = 'bun_bottom';
                 layerDiv.classList.add('layer-bun-bottom');
