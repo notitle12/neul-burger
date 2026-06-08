@@ -98,7 +98,7 @@ function setupEvents() {
 
             // 1️⃣ 철판이 비어있을 때
             if (!zone.isOccupied) {
-                // 🛑 재조리 불가 규칙 연동: 고기뿐만 아니라 양파(onion) 역시 트레이에서 갓 집어든 생것('raw') 상태일 때만 올릴 수 있도록 제한합니다.
+                // 🛑 재조리 불가 규칙: 고기와 양파 모두 마우스 상태가 완벽한 생것('raw')일 때만 투입 허용!
                 if ((mouseHolding.type === 'onion' || mouseHolding.type === 'patty') && mouseHolding.status === 'raw') {
                     zone.isOccupied = true;
                     zone.type = mouseHolding.type;
@@ -118,14 +118,14 @@ function setupEvents() {
 
                 if (isHandEmpty || isHoldingSource) {
                     
-                    // 🥩 [패티 뒤집기] 패티가 아직 첫 면을 굽는 중이고 아직 타지 않았다면 뒤집기 가능
+                    // 🥩 [패티 뒤집기 기믹]
                     if (zone.type === 'patty' && !zone.isFlipped && zone.status !== 'burned') {
-                        if (zone.sideTime >= 4 && zone.sideTime <= 6) {
+                        if (zone.sideTime < 3) {
+                            zone.frontStatus = 'raw';
+                        } else if (zone.sideTime >= 3 && zone.sideTime <= 4) {
                             zone.frontStatus = 'cooked'; 
-                        } else if (zone.sideTime > 6) {
-                            zone.frontStatus = 'burned'; 
                         } else {
-                            zone.frontStatus = 'raw';    
+                            zone.frontStatus = 'burned'; 
                         }
 
                         zone.isFlipped = true;
@@ -139,7 +139,7 @@ function setupEvents() {
                         zoneEl.style.borderStyle = 'solid'; 
                         zoneEl.style.borderColor = '#8b5a2b';
                     } 
-                    // 🧺 [스마트 즉시 수거 시스템] 이미 뒤집었거나, 한 면이라도 탔거나, 양파 슬라이스일 때 즉시 수거
+                    // 🧺 [스마트 즉시 수거 시스템] 패티 수거 및 양파 즉시 수거
                     else {
                         if (isHoldingSource) {
                             clearMouseHolding(); 
@@ -150,9 +150,9 @@ function setupEvents() {
                         if (zone.type === 'patty') {
                             let backStatus = 'raw';
                             if (zone.isFlipped) {
-                                if (zone.sideTime >= 4 && zone.sideTime <= 6) {
+                                if (zone.sideTime >= 3 && zone.sideTime <= 4) {
                                     backStatus = 'cooked'; 
-                                } else if (zone.sideTime > 6) {
+                                } else if (zone.sideTime > 4) {
                                     backStatus = 'burned'; 
                                 }
                             }
@@ -165,7 +165,12 @@ function setupEvents() {
                                 mouseHolding.displayStatus = backStatus;
                             }
                         } else {
-                            mouseHolding.status = zone.status;
+                            // 양파 재사용 원천 차단: 완벽히 익기 전인 'raw' 상태의 양파를 도중에 수거했다면 'raw_half'로 변경
+                            if (zone.status === 'raw') {
+                                mouseHolding.status = 'raw_half';
+                            } else {
+                                mouseHolding.status = zone.status;
+                            }
                             mouseHolding.displayStatus = zone.status;
                         }
                         
@@ -244,33 +249,72 @@ function setupEvents() {
 
         let hasPackedBurger = false; 
         let isPerfectSubmit = true;  
+        let anyFail = false; 
 
         burgerBags.forEach((bag, index) => {
             if (bag.isPacked) {
                 hasPackedBurger = true;
-                const earnedMoney = calculateBurgerPrice(bag.stack);
-                
-                if (earnedMoney < 10000) {
+
+                // 🛑 [버그 수정] 절대 필수조건 엄격하게 필터링 카운트 진행
+                let bunCount = 0;
+                let pattyCount = 0;
+                bag.stack.forEach(item => {
+                    if (item.startsWith('bun')) bunCount++;
+                    // 패티 패킹 이름(patty_cooked_cooked 등)을 명확하게 포착합니다.
+                    if (item.startsWith('patty')) pattyCount++;
+                });
+
+                let earnedMoney = 0;
+                let isJangnan = false;
+
+                // 빵이 2개 미만이거나 패티가 단 1개도 없다면 "지금 장난해?" 트리거로 직행
+                if (bunCount < 2 || pattyCount < 1) {
+                    earnedMoney = 0;
+                    isJangnan = true;
+                    anyFail = true;
                     isPerfectSubmit = false;
+                } else {
+                    // 필수 구색 조건을 갖추었을 때만 정상 정산 연산 진행
+                    earnedMoney = calculateBurgerPrice(bag.stack);
+                    
+                    if (earnedMoney <= 6000) {
+                        earnedMoney = 0;
+                        anyFail = true;
+                        isPerfectSubmit = false;
+                    }
+                    if (earnedMoney > 0 && earnedMoney < 10000) {
+                        isPerfectSubmit = false;
+                    }
                 }
 
                 score += earnedMoney;
+                
+                // 🧺 게임 진행 흐름을 살리기 위해 봉지는 무조건 원천 초기화 리셋!
                 bag.stack = [];
                 bag.isPacked = false;
                 
                 const bagEl = bagEls[index];
                 bagEl.classList.remove('packed');
-                bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
+                
+                if (isJangnan) {
+                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (지금 장난해?)`;
+                } else if (earnedMoney === 0) {
+                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1} (맛없어서 0원!)`;
+                } else {
+                    bagEl.querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
+                }
                 renderBagStack(index);
             }
         });
         
         scoreEl.innerText = score + "원";
 
+        // 서빙 피드백 캐릭터 리액션 시스템
         if (hasPackedBurger) {
             if (reactionTimeout) clearTimeout(reactionTimeout); 
 
-            if (isPerfectSubmit) {
+            // 필수 조건 미달 버거가 있거나 6000원 이하 맛없는 버거가 섞이면 무조건 Fail 리액션 송출!
+            if (isPerfectSubmit && !anyFail) {
                 reactionImg.src = 'images/clear_perfect.png'; 
             } else {
                 reactionImg.src = 'images/clear_fail.png';    
@@ -279,6 +323,9 @@ function setupEvents() {
             reactionContainer.classList.remove('reaction-hidden');
 
             reactionTimeout = setTimeout(() => {
+                burgerBags.forEach((b, index) => {
+                    bagEls[index].querySelector('.bag-name').innerText = `빵봉지 ${index + 1}`;
+                });
                 reactionContainer.classList.add('reaction-hidden');
             }, 1000);
         }
@@ -303,6 +350,7 @@ function calculateBurgerPrice(userStack) {
         
         if (item.startsWith('onion_burned')) price -= 500;
         if (item.startsWith('onion_raw')) price -= 500;
+        if (item.startsWith('onion_raw_half')) price -= 500; 
     });
 
     userStack.forEach(item => {
@@ -317,9 +365,9 @@ function calculateBurgerPrice(userStack) {
 
             switch(finalPattyKey) {
                 case 'raw_raw':     price -= 1000;  break;
-                case 'raw_cooked':  price -= 500;   break;
+                case 'raw_cooked':  price -= 1000;  break;
                 case 'raw_burned':  price -= 1000;  break;
-                case 'cooked_raw':  price -= 500;   break;
+                case 'cooked_raw':  price -= 1000;  break;
                 case 'cooked_cooked': break;
                 case 'cooked_burned': price -= 1000;  break;
                 case 'burned':      price -= 2000;  break;
@@ -376,7 +424,7 @@ function updateFollower(e) {
             if (mouseHolding.type === "patty") {
                 key += `_${mouseHolding.displayStatus}`;
             } else if (mouseHolding.type === "onion") {
-                const shortStatus = mouseHolding.status.split('_')[0];
+                const shortStatus = mouseHolding.status === 'raw_half' ? 'raw' : mouseHolding.status.split('_')[0];
                 key += `_${shortStatus}`;
             }
 
@@ -443,6 +491,11 @@ function renderBagStack(bagId) {
             layerDiv.classList.add(`layer-${rawType}`);
             const backStatus = parts[3] || parts[1];
             imgKey = `patty_${backStatus}`; 
+        } else if (rawType === 'onion') {
+            layerDiv.classList.add(`layer-${rawType}`);
+            if (parts[1] === 'raw' && parts[2] === 'half') {
+                imgKey = 'onion_raw';
+            }
         } else {
             layerDiv.classList.add(`layer-${rawType}`);
         }
@@ -518,10 +571,10 @@ function startGameLoop() {
 
                 if (zone.type === 'patty') {
                     if (!zone.isFlipped) {
-                        if (zone.sideTime < 4) {
+                        if (zone.sideTime < 3) {
                             zone.status = 'raw';
                             statusSpan.innerText = `첫면 굽는중 ${zone.sideTime.toFixed(1)}초`;
-                        } else if (zone.sideTime >= 4 && zone.sideTime <= 6) {
+                        } else if (zone.sideTime >= 3 && zone.sideTime <= 4) {
                             zone.status = 'raw'; 
                             statusSpan.innerText = `🔥 뒤집어! ${zone.sideTime.toFixed(1)}초`;
                         } else {
@@ -529,10 +582,10 @@ function startGameLoop() {
                             zone.frontStatus = 'burned';
                         }
                     } else {
-                        if (zone.sideTime < 4) {
+                        if (zone.sideTime < 3) {
                             zone.status = 'raw';
                             statusSpan.innerText = `뒷면 굽는중 ${zone.sideTime.toFixed(1)}초`;
-                        } else if (zone.sideTime >= 4 && zone.sideTime <= 6) {
+                        } else if (zone.sideTime >= 3 && zone.sideTime <= 4) {
                             zone.status = 'cooked';
                             statusSpan.innerText = `✨ 뒷면 완벽! ${zone.sideTime.toFixed(1)}초`;
                         } else {
@@ -540,9 +593,9 @@ function startGameLoop() {
                         }
                     }
                 } else if (zone.type === 'onion') {
-                    if (zone.time < 3) {
+                    if (zone.time < 2.5) {
                         zone.status = 'raw';
-                    } else if (zone.time >= 3 && zone.time <= 5) {
+                    } else if (zone.time >= 2.5 && zone.time <= 3.5) {
                         zone.status = 'cooked';
                     } else {
                         zone.status = 'burned';
