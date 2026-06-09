@@ -15,6 +15,7 @@ const targetRecipe = [
 ];
 
 const assetImages = {
+    'grill': 'images/grill.webp',
     'wrapping_paper': 'images/wrapping_paper.webp',
     
     'bun': 'images/bun.webp',               
@@ -23,6 +24,7 @@ const assetImages = {
     'cheeze': 'images/cheeze.webp',
     
     'patty_raw': 'images/patty1.webp',
+    'patty_front_cooked': 'images/patty2.webp',
     'patty_cooked': 'images/patty2.webp',    
     'patty_overcooked': 'images/patty3.webp',
     'patty_burned': 'images/patty4.webp',    

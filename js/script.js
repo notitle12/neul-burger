@@ -107,7 +107,11 @@ function setupEvents() {
                     zone.isFlipped = false;
                     zone.status = 'raw';
                     zone.frontStatus = 'none'; 
-                    zoneEl.style.backgroundImage = `url('${assetImages[zone.type + '_raw']}')`;
+                    
+                    // 💡 구역 전체가 아니라 내부 .ingredient-img에 이미지를 넣습니다.
+                    const imgEl = zoneEl.querySelector('.ingredient-img');
+                    if (imgEl) imgEl.style.backgroundImage = `url('${assetImages[zone.type + '_raw']}')`;
+                    
                     clearMouseHolding();
                 }
             } 
@@ -458,11 +462,9 @@ function updateFollower(e) {
 }
 
 function elReset(zoneEl, id) {
-    zoneEl.style.backgroundColor = '#777';
-    zoneEl.style.backgroundImage = 'none';
-    zoneEl.style.borderStyle = 'dashed';
-    zoneEl.style.borderColor = '#222';
-    zoneEl.innerHTML = `구역 ${id+1}<br><span class="status">비어있음</span>`;
+    const imgEl = zoneEl.querySelector('.ingredient-img');
+    if (imgEl) imgEl.style.backgroundImage = 'none';
+    // ✂️ statusSpan 관련 코드 완전 삭제
 }
 
 // ==========================================
@@ -557,7 +559,7 @@ function renderBagStack(bagId) {
 }
 
 // ==========================================
-// 8. 실시간 조리 타이머 루프 Engine
+// 8. 실시간 조리 타이머 루프 Engine (수정본)
 // ==========================================
 function startGameLoop() {
     gameInterval = setInterval(() => {
@@ -574,12 +576,11 @@ function startGameLoop() {
 
         grillZones.forEach((zone, index) => {
             const el = grillEls[index];
-            if (zone.isOccupied) {
-                const statusSpan = el.querySelector('.status');
+            const imgEl = el.querySelector('.ingredient-img');
 
+            if (zone.isOccupied) {
                 if (zone.status === 'burned') {
-                    statusSpan.innerText = `${zone.type === 'patty' ? '고기' : '양파'} 완전히 탐! [수거만 가능]`;
-                    el.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
+                    if (imgEl) imgEl.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
                     el.classList.remove('cooking');
                     return;
                 }
@@ -589,23 +590,21 @@ function startGameLoop() {
 
                 if (zone.type === 'patty') {
                     if (!zone.isFlipped) {
+                        // 🥩 [앞면 구울 때]
                         if (zone.sideTime < 3) {
                             zone.status = 'raw';
-                            statusSpan.innerText = `첫면 굽는중 ${zone.sideTime.toFixed(1)}초`;
                         } else if (zone.sideTime >= 3 && zone.sideTime <= 4) {
-                            zone.status = 'raw'; 
-                            statusSpan.innerText = `🔥 뒤집어! ${zone.sideTime.toFixed(1)}초`;
+                            zone.status = 'front_cooked'; // 앞면 완벽히 익음 -> 노릇한 이미지
                         } else {
                             zone.status = 'burned'; 
                             zone.frontStatus = 'burned';
                         }
                     } else {
+                        // 🥩 [뒷면 구울 때]
                         if (zone.sideTime < 3) {
-                            zone.status = 'raw';
-                            statusSpan.innerText = `뒷면 굽는중 ${zone.sideTime.toFixed(1)}초`;
+                            zone.status = 'raw'; // 💡 [핵심 수정] 뒤집은 직후 3초 전까지는 다시 생고기 이미지가 보이도록 변경!
                         } else if (zone.sideTime >= 3 && zone.sideTime <= 4) {
-                            zone.status = 'cooked';
-                            statusSpan.innerText = `✨ 뒷면 완벽! ${zone.sideTime.toFixed(1)}초`;
+                            zone.status = 'cooked'; // 뒷면까지 완벽히 익음 -> 완숙 이미지
                         } else {
                             zone.status = 'burned'; 
                         }
@@ -618,26 +617,25 @@ function startGameLoop() {
                     } else {
                         zone.status = 'burned';
                     }
-                    statusSpan.innerText = `양파[${zone.status}] ${zone.time.toFixed(1)}초`;
                 }
 
+                // 실시간 이미지 반영
                 if (zone.status !== 'burned') {
                     let currentKey = `${zone.type}_${zone.status}`;
-                    if (assetImages[currentKey]) {
-                        el.style.backgroundImage = `url('${assetImages[currentKey]}')`;
+                    if (assetImages[currentKey] && imgEl) {
+                        imgEl.style.backgroundImage = `url('${assetImages[currentKey]}')`;
                     }
                     el.classList.add('cooking');
                     anyItemCooking = true; 
                 } else {
-                    el.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
+                    if (imgEl) imgEl.style.backgroundImage = `url('${assetImages[zone.type + '_burned']}')`;
                     el.classList.remove('cooking');
                 }
             } else {
                 el.classList.remove('cooking');
             }
-        }); 
+        });
 
-        // audio.js에 이관된 효과음 함수 호출
         handleSizzleSound(anyItemCooking);
 
     }, 100);
