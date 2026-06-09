@@ -17,6 +17,7 @@ const targetRecipe = [
 const assetImages = {
     'grill': 'images/grill.webp',
     'wrapping_paper': 'images/wrapping_paper.webp',
+    'wrapping_paper_seal': 'images/wraping_paper_seal.webp',
     
     'bun': 'images/bun.webp',               
     'bun_bottom': 'images/bun1.webp',        

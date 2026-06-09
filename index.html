@@ -9,11 +9,13 @@
 <body>
     <div id="game-container">
         <div id="ui-area">
-            <div id="timer">⏱️ 제한 시간: <span id="time-val">120</span>s</div>
-            <div id="score">💰 점수: <span id="score-val">0</span></div>
+            <div class="ui-left">
+                <div id="timer" class="ui-badge"><span class="icon">⏱️</span> 시간 <span id="time-val">120</span>초</div>
+                <div id="score" class="ui-badge"><span class="icon">💰</span> 점수 <span id="score-val">0</span></div>
+            </div>
             <div id="ui-btns">
-                <button id="settings-open-btn">⚙️ 설정</button>
-                <button id="serve-bell-btn">🔔 서빙 벨 (클릭)</button>
+                <button id="settings-open-btn" title="사운드 설정">📢</button>
+                <button id="serve-bell-btn">🔔 서빙하기</button>
             </div>
         </div>
 

@@ -194,58 +194,55 @@ function setupEvents() {
         });
     });
 
-    bagEls.forEach(bagEl => {
-        bagEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = parseInt(bagEl.getAttribute('data-id'));
-            const bag = burgerBags[id];
+bagEls.forEach(bagEl => {
+    bagEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = parseInt(bagEl.getAttribute('data-id'));
+        const bag = burgerBags[id];
 
-            if (bag.isPacked) return;
+        if (bag.isPacked) return;
 
-            if (mouseHolding.type) {
-                let layerName = mouseHolding.type;
-                
-                if (mouseHolding.type === 'patty') {
-                    layerName += `_${mouseHolding.status}_${mouseHolding.displayStatus}`;
-                } else if (mouseHolding.type === 'onion') {
-                    layerName += `_${mouseHolding.status}`;
-                }
-                
-                if (mouseHolding.type === 'source1' || mouseHolding.type === 'source2') {
-                    playSquirtSound();
-
-                    const topItem = bag.stack.length > 0 ? bag.stack[bag.stack.length - 1] : "";
-
-                    if (topItem.startsWith(mouseHolding.type)) {
-                        const currentCount = parseInt(topItem.split('_')[1]);
-                        if (currentCount < 3) {
-                            bag.stack[bag.stack.length - 1] = `${mouseHolding.type}_${currentCount + 1}`;
-                            renderBagStack(id);
-                            return; 
-                        } else {
-                            return; 
-                        }
-                    } else {
-                        layerName += `_1`;
-                    }
-                }
-
-                bag.stack.push(layerName);
-                renderBagStack(id);
-
-                if (mouseHolding.type !== 'source1' && mouseHolding.type !== 'source2') {
-                    clearMouseHolding();
-                }
-            } else {
-                // 💡 [포장 완료 기능 유지!] 빈 손으로 클릭 시 포장 완료 상태로 변경됩니다.
-                if (bag.stack.length > 0) {
-                    bag.isPacked = true;
-                    bagEl.classList.add('packed'); // CSS에서 drop-shadow 불빛이 들어옵니다.
-                    // ✂️ 지워진 .bag-name의 innerText를 바꾸던 에러 코드를 완전히 도려냈습니다.
-                }
+        if (mouseHolding.type) {
+            // ... (기존 재료 쌓는 코드 유지) ...
+            let layerName = mouseHolding.type;
+            if (mouseHolding.type === 'patty') {
+                layerName += `_${mouseHolding.status}_${mouseHolding.displayStatus}`;
+            } else if (mouseHolding.type === 'onion') {
+                layerName += `_${mouseHolding.status}`;
             }
-        });
+            
+            if (mouseHolding.type === 'source1' || mouseHolding.type === 'source2') {
+                playSquirtSound();
+                const topItem = bag.stack.length > 0 ? bag.stack[bag.stack.length - 1] : "";
+                if (topItem.startsWith(mouseHolding.type)) {
+                    const currentCount = parseInt(topItem.split('_')[1]);
+                    if (currentCount < 3) {
+                        bag.stack[bag.stack.length - 1] = `${mouseHolding.type}_${currentCount + 1}`;
+                        renderBagStack(id);
+                        return; 
+                    } else { return; }
+                } else { layerName += `_1`; }
+            }
+
+            bag.stack.push(layerName);
+            renderBagStack(id);
+
+            if (mouseHolding.type !== 'source1' && mouseHolding.type !== 'source2') {
+                clearMouseHolding();
+            }
+        } else {
+            // 💡 [수정]: 빈 손으로 클릭하여 포장을 완료했을 때의 처리
+            if (bag.stack.length > 0) {
+                bag.isPacked = true;
+                bagEl.classList.add('packed'); // 클래스를 추가하여 CSS에서 밀봉 이미지가 보이게 합니다.
+                
+                // 💡 [추가]: 포장이 완료되었으므로 쌓여있던 햄버거 레이어들을 화면에서 싹 지워줍니다.
+                const stackArea = bagEl.querySelector('.burger-stack');
+                if (stackArea) stackArea.innerHTML = '';
+            }
+        }
     });
+});
 
 bellBtn.addEventListener('click', () => {
         playBellSound();
@@ -471,87 +468,69 @@ function elReset(zoneEl, id) {
 // 🍔 7. 조합형 렌더링 함수
 // ==========================================
 function renderBagStack(bagId) {
-    const stackArea = bagEls[bagId].querySelector('.burger-stack');
+    const bagEl = bagEls[bagId];
+    const stackArea = bagEl.querySelector('.burger-stack');
     stackArea.innerHTML = ''; 
     
+    // 💡 [추가]: 만약 포장이 이미 완료된 상태라면 재료 레이어들을 그리지 않고 리턴합니다.
+    if (burgerBags[bagId].isPacked) {
+        return;
+    }
+
     let currentBottom = 60; 
 
     burgerBags[bagId].stack.forEach((layer, index) => {
+        // ... (기존 햄버格 레이어 쌓는 코드 그대로 유지) ...
         const layerDiv = document.createElement('div');
         layerDiv.className = 'layer';
-        
         const parts = layer.split('_');
         const rawType = parts[0]; 
         let imgKey = layer;
         let currentKey = rawType;
 
-        // ⭕ [아래 빵 고정 규칙]: 최초로 빌드된 첫 번째 빵만 bun_bottom 처리
         if (rawType === 'bun') {
             let hasPreviousBun = false;
             for (let i = 0; i < index; i++) {
-                if (burgerBags[bagId].stack[i].startsWith('bun')) {
-                    hasPreviousBun = true;
-                    break;
-                }
+                if (burgerBags[bagId].stack[i].startsWith('bun')) { hasPreviousBun = true; break; }
             }
-
             if (hasPreviousBun) {
-                imgKey = 'bun_top';        
-                currentKey = 'bun_top';
-                layerDiv.classList.add('layer-bun-top');
+                imgKey = 'bun_top'; currentKey = 'bun_top'; layerDiv.classList.add('layer-bun-top');
             } else {
-                imgKey = 'bun_bottom';     
-                currentKey = 'bun_bottom';
-                layerDiv.classList.add('layer-bun-bottom');
+                imgKey = 'bun_bottom'; currentKey = 'bun_bottom'; layerDiv.classList.add('layer-bun-bottom');
             }
         } else if (rawType === 'source1' || rawType === 'source2') {
-            currentKey = rawType;
-            layerDiv.classList.add('layer-source');
+            currentKey = rawType; layerDiv.classList.add('layer-source');
         } else if (rawType === 'patty') {
             layerDiv.classList.add(`layer-${rawType}`);
-            const backStatus = parts[3] || parts[1];
-            imgKey = `patty_${backStatus}`; 
+            const backStatus = parts[3] || parts[1]; imgKey = `patty_${backStatus}`; 
         } else if (rawType === 'onion') {
             layerDiv.classList.add(`layer-${rawType}`);
-            if (parts[1] === 'raw' && parts[2] === 'half') {
-                imgKey = 'onion_raw';
-            }
-        } else {
-            layerDiv.classList.add(`layer-${rawType}`);
-        }
+            if (parts[1] === 'raw' && parts[2] === 'half') { imgKey = 'onion_raw'; }
+        } else { layerDiv.classList.add(`layer-${rawType}`); }
 
         if (index > 0) {
             const previousLayer = burgerBags[bagId].stack[index - 1];
             const prevType = previousLayer.split('_')[0]; 
             let prevKey = previousLayer; 
-
-            if (prevType === 'bun' && index - 1 === 0) {
-                prevKey = 'bun_bottom';
-            } else if (prevType === 'source1' || prevType === 'source2') {
-                prevKey = prevType;
-            }
+            if (prevType === 'bun' && index - 1 === 0) { prevKey = 'bun_bottom'; } 
+            else if (prevType === 'source1' || prevType === 'source2') { prevKey = prevType; }
 
             let comboName = `${prevKey}_${currentKey}`;
             let gap = 0;
-
-            if (combinationGaps[comboName] !== undefined) {
-                gap = combinationGaps[comboName];
-            } else {
+            if (combinationGaps[comboName] !== undefined) { gap = combinationGaps[comboName]; } 
+            else {
                 const fallbackKey = `${prevType}_${currentKey}`;
-                if (combinationGaps[fallbackKey] !== undefined) {
-                    gap = combinationGaps[fallbackKey];
-                } else {
+                if (combinationGaps[fallbackKey] !== undefined) { gap = combinationGaps[fallbackKey]; } 
+                else {
                     const prevThick = defaultThickness[prevKey] !== undefined ? defaultThickness[prevKey] : 4;
                     gap = prevThick + 4; 
                 }
             }
-            
             currentBottom += gap;
         }
 
         layerDiv.style.bottom = currentBottom + 'px';
         layerDiv.style.zIndex = index + 1; 
-        
         layerDiv.innerText = parts[0] + (parts[1] ? `_${parts[1]}` : '');
         layerDiv.style.backgroundImage = `url('${assetImages[imgKey] || assetImages[rawType]}')`;
         stackArea.appendChild(layerDiv);
