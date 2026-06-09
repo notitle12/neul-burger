@@ -8,10 +8,10 @@ const bellAudio = document.getElementById('bell-sound');
 const squirtAudio = document.getElementById('squirt-sound');
 
 // 각각 독립적으로 분리된 전역 사운드 세기 제어 변수
-let bgmVolume = 0.5;
-let sizzleVolume = 0.3;
-let squirtVolume = 0.5;
-let bellVolume = 1.0;
+let bgmVolume = 0.1;
+let sizzleVolume = 0.4;
+let squirtVolume = 0.4;
+let bellVolume = 0.4;
 
 // 배경음악 오디오 락 해제 및 재생 함수
 function playBackgroundBGM() {

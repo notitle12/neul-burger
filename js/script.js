@@ -555,7 +555,7 @@ function startGameLoop() {
             clearInterval(gameInterval);
             
             // 📢 알림창을 띄우고 확인을 누르면 점수(?score=현재점수)를 품고 결과 페이지로 날아갑니다.
-            alert(`게임 종료! 총 획득 수익: ${score}원`);
+            // alert(`게임 종료! 총 획득 수익: ${score}원`);
             location.href = `result.html?score=${score}`; 
             return;
         }
