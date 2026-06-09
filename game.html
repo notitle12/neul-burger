@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>늘의 햄버거 가게 - 프로토타입</title>
+    <link rel="stylesheet" href="css/common.css"> <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-area">
+            <div class="ui-left">
+                <div id="timer" class="ui-badge"><span class="icon">⏱️</span> 시간 <span id="time-val">120</span>초</div>
+                <div id="score" class="ui-badge"><span class="icon">💰</span> 점수 <span id="score-val">0</span></div>
+            </div>
+            <div id="ui-btns">
+                <button id="settings-open-btn" title="사운드 설정">📢</button>
+                <button id="serve-bell-btn">🔔 서빙하기</button>
+            </div>
+        </div>
+
+        <div id="grill-container">
+            <div class="grill-zones">
+                <div class="grill-zone" data-id="0">
+                    <div class="ingredient-img"></div>
+                </div>
+                <div class="grill-zone" data-id="1">
+                    <div class="ingredient-img"></div>
+                </div>
+                <div class="grill-zone" data-id="2">
+                    <div class="ingredient-img"></div>
+                </div>
+                <div class="grill-zone" data-id="3">
+                    <div class="ingredient-img"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="bag-container">
+            <div class="bag-zones">
+                <div class="bag-zone" data-id="0">
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="1">
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="2">
+                    <div class="burger-stack"></div>
+                </div>
+                <div class="bag-zone" data-id="3">
+                    <div class="burger-stack"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tray-container">
+            <div class="tray-item" data-type="bun" style="background-color: #FFA54F;">빵 (Bun)</div>
+            <div class="tray-item" data-type="cheeze" style="background-color: #FFD700;">치즈 (Cheese)</div>
+            <div class="tray-item" data-type="onion" style="background-color: #E066FF;">양파 (Onion)</div>
+            <div class="tray-item" data-type="patty" style="background-color: #8B3A3A; color: white;">패티 (Patty)</div>
+            <div class="tray-item" data-type="source1" style="background-color: #FF3030; color: white;">소스1 (Red)</div>
+            <div class="tray-item" data-type="source2" style="background-color: #FFFFF0;">소스2 (White)</div>
+        </div>
+
+        <div id="mouse-follower"></div>
+        
+        <div id="reaction-container" class="reaction-hidden">
+            <div id="dialogue-box"></div>
+            <img id="reaction-img" src="" alt="늘님 리액션">
+        </div>
+
+        <div id="settings-modal" class="modal-hidden">
+            <div class="modal-content">
+                <div class="modal-title">🎵 사운드 옵션 설정</div>
+                
+                <div class="volume-row">
+                    <label for="bgm-slider">배경음악(BGM)</label>
+                    <input type="range" id="bgm-slider" min="0" max="1" step="0.05" value="0.5">
+                    <span id="bgm-volume-txt">50%</span>
+                </div>
+
+                <div class="modal-divider"></div>
+
+                <div class="volume-row">
+                    <label for="sizzle-slider">🥩 철판 굽는 소리</label>
+                    <input type="range" id="sizzle-slider" min="0" max="1" step="0.05" value="0.3">
+                    <span id="sizzle-volume-txt">30%</span>
+                </div>
+
+                <div class="volume-row">
+                    <label for="squirt-slider">🍅 소스 짜는 소리</label>
+                    <input type="range" id="squirt-slider" min="0" max="1" step="0.05" value="0.5">
+                    <span id="squirt-volume-txt">50%</span>
+                </div>
+
+                <div class="volume-row">
+                    <label for="bell-slider">🔔 서빙 벨 소리</label>
+                    <input type="range" id="bell-slider" min="0" max="1" step="0.05" value="1.0">
+                    <span id="bell-volume-txt">100%</span>
+                </div>
+
+                <button id="settings-close-btn">적용 및 닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="background-bgm" src="audios/background_music.mp3" loop preload="auto"></audio>
+    <audio id="sizzle-sound" src="audios/sizzle.mp3" loop preload="auto"></audio>
+    <audio id="bell-sound" src="audios/service_bell.mp3" preload="auto"></audio>
+    <audio id="squirt-sound" src="audios/squirt.mp3" preload="auto"></audio>
+
+    <script src="js/constants.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

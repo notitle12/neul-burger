@@ -42,18 +42,23 @@ const reactionContainer = document.getElementById('reaction-container');
 const reactionImg = document.getElementById('reaction-img');
 
 // ==========================================
-// 3. 게임 엔진 초기화
+// 3. 게임 엔진 초기화 (수정 반영본)
 // ==========================================
 function init() {
     window.addEventListener('contextmenu', e => e.preventDefault());
 
-    // 오디오 파일(audio.js)에 구현된 BGM 재생 함수 호출
+    // 💡 [추가된 부분] 초기 실행 시 점수판 영역을 공백 대신 '0원' 포맷으로 통일시킵니다.
+    if (scoreEl) scoreEl.innerText = score + "원";
+
+    // 💡 브라우저 오디오 자동재생 정책(Autoplay) 우회 안전 장치
     const unlockAndPlayBGM = () => {
         playBackgroundBGM();
+        // 한 번 재생에 성공하면 이벤트 리스너를 제거하여 중복 실행 방지
         window.removeEventListener('click', unlockAndPlayBGM);
         window.removeEventListener('mousedown', unlockAndPlayBGM);
     };
 
+    // 사용자가 인게임 화면에서 무언가를 누르는 첫 순간 BGM 시동
     window.addEventListener('click', unlockAndPlayBGM);
     window.addEventListener('mousedown', unlockAndPlayBGM);
 
@@ -71,10 +76,10 @@ function init() {
         }
     });
 
+    // 게임 시작 시 즉시 핸들러와 타이머 루프 가동
     setupEvents();
     startGameLoop();
 }
-
 // ==========================================
 // 4. 이벤트 핸들러 등록
 // ==========================================
@@ -545,10 +550,14 @@ function startGameLoop() {
         timeLeft--;
         timerEl.innerText = Math.ceil(timeLeft / 10);
 
+        // 💡 [수정] 제한시간이 끝났을 때 결과창으로 이동
         if (timeLeft <= 0) {
             clearInterval(gameInterval);
+            
+            // 📢 알림창을 띄우고 확인을 누르면 점수(?score=현재점수)를 품고 결과 페이지로 날아갑니다.
             alert(`게임 종료! 총 획득 수익: ${score}원`);
-            location.reload();
+            location.href = `result.html?score=${score}`; 
+            return;
         }
 
         let anyItemCooking = false;

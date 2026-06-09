@@ -3,114 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>늘의 햄버거 가게 - 프로토타입</title>
-    <link rel="stylesheet" href="style.css">
+    <title>늘의 햄버거 가게 - 대기실</title>
+    <link rel="stylesheet" href="css/common.css"> 
+    <link rel="stylesheet" href="css/lobby.css">
 </head>
 <body>
-    <div id="game-container">
-        <div id="ui-area">
-            <div class="ui-left">
-                <div id="timer" class="ui-badge"><span class="icon">⏱️</span> 시간 <span id="time-val">120</span>초</div>
-                <div id="score" class="ui-badge"><span class="icon">💰</span> 점수 <span id="score-val">0</span></div>
-            </div>
-            <div id="ui-btns">
-                <button id="settings-open-btn" title="사운드 설정">📢</button>
-                <button id="serve-bell-btn">🔔 서빙하기</button>
-            </div>
-        </div>
-
-        <div id="grill-container">
-            <div class="grill-zones">
-                <div class="grill-zone" data-id="0">
-                    <div class="ingredient-img"></div>
-                </div>
-                <div class="grill-zone" data-id="1">
-                    <div class="ingredient-img"></div>
-                </div>
-                <div class="grill-zone" data-id="2">
-                    <div class="ingredient-img"></div>
-                </div>
-                <div class="grill-zone" data-id="3">
-                    <div class="ingredient-img"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="bag-container">
-            <div class="bag-zones">
-                <div class="bag-zone" data-id="0">
-                    <div class="burger-stack"></div>
-                </div>
-                <div class="bag-zone" data-id="1">
-                    <div class="burger-stack"></div>
-                </div>
-                <div class="bag-zone" data-id="2">
-                    <div class="burger-stack"></div>
-                </div>
-                <div class="bag-zone" data-id="3">
-                    <div class="burger-stack"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tray-container">
-            <div class="tray-item" data-type="bun" style="background-color: #FFA54F;">빵 (Bun)</div>
-            <div class="tray-item" data-type="cheeze" style="background-color: #FFD700;">치즈 (Cheese)</div>
-            <div class="tray-item" data-type="onion" style="background-color: #E066FF;">양파 (Onion)</div>
-            <div class="tray-item" data-type="patty" style="background-color: #8B3A3A; color: white;">패티 (Patty)</div>
-            <div class="tray-item" data-type="source1" style="background-color: #FF3030; color: white;">소스1 (Red)</div>
-            <div class="tray-item" data-type="source2" style="background-color: #FFFFF0;">소스2 (White)</div>
-        </div>
-
-        <div id="mouse-follower"></div>
-        
-        <div id="reaction-container" class="reaction-hidden">
-            <div id="dialogue-box"></div>
-            <img id="reaction-img" src="" alt="늘님 리액션">
-        </div>
-
-        <div id="settings-modal" class="modal-hidden">
-            <div class="modal-content">
-                <div class="modal-title">🎵 사운드 옵션 설정</div>
-                
-                <div class="volume-row">
-                    <label for="bgm-slider">배경음악(BGM)</label>
-                    <input type="range" id="bgm-slider" min="0" max="1" step="0.05" value="0.5">
-                    <span id="bgm-volume-txt">50%</span>
-                </div>
-
-                <div class="modal-divider"></div>
-
-                <div class="volume-row">
-                    <label for="sizzle-slider">🥩 철판 굽는 소리</label>
-                    <input type="range" id="sizzle-slider" min="0" max="1" step="0.05" value="0.3">
-                    <span id="sizzle-volume-txt">30%</span>
-                </div>
-
-                <div class="volume-row">
-                    <label for="squirt-slider">🍅 소스 짜는 소리</label>
-                    <input type="range" id="squirt-slider" min="0" max="1" step="0.05" value="0.5">
-                    <span id="squirt-volume-txt">50%</span>
-                </div>
-
-                <div class="volume-row">
-                    <label for="bell-slider">🔔 서빙 벨 소리</label>
-                    <input type="range" id="bell-slider" min="0" max="1" step="0.05" value="1.0">
-                    <span id="bell-volume-txt">100%</span>
-                </div>
-
-                <button id="settings-close-btn">적용 및 닫기</button>
-            </div>
+    <div id="lobby-container">
+        <div class="lobby-menu-wrap">
+            <a href="game.html" class="lobby-img-btn start-link" title="게임 시작"></a>
+            <button id="open-guide-btn" class="lobby-img-btn guide-link" title="게임 설명"></button>
         </div>
     </div>
 
-    <audio id="background-bgm" src="audios/background_music.mp3" loop preload="auto"></audio>
-    <audio id="sizzle-sound" src="audios/sizzle.mp3" loop preload="auto"></audio>
-    <audio id="bell-sound" src="audios/service_bell.mp3" preload="auto"></audio>
-    <audio id="squirt-sound" src="audios/squirt.mp3" preload="auto"></audio>
+<div id="guide-modal" class="modal-hidden">
+    <div class="modal-content guide-content">
 
-    <script src="js/constants.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/script.js"></script>
+        <button id="close-guide-btn-top" class="modal-close-x" title="가이드 닫기">×</button>
+
+        <div class="modal-title">게임 설명 및 조리법</div>
+        <div class="guide-scroll-area">
+            <h3>게임 목표</h3>
+            <p>120초 동안 손님이 주문한 버거를 완벽하게 만들어 높은 점수를 획득하세요!</p>
+            
+            <div class="modal-divider"></div>
+            
+            <h3>🍔 황금 버거 제조 순서</h3>
+            <div class="guide-img-wrap">
+                <img src="images/assembly_guide.webp" alt="햄버거 만드는 순서" class="guide-recipe-img">
+            </div>
+            <p class="recipe-sequence">
+                <strong>밑에 빵</strong> ➔ 빨간 소스 ➔ 패티 ➔ 치즈 ➔ 양파 ➔ 패티 ➔ 치즈 ➔ 하얀 소스 ➔ <strong>위의 빵</strong>
+            </p>
+            
+            <div class="modal-divider"></div>
+            
+            <h3>재료 조리 기믹</h3>
+            <ul>
+                <li><strong>패티 굽기:</strong> 철판에 올린 후 <span class="highlight">앞면 3~4초</span> 사이에 뒤집고, 다시 <span class="highlight">뒷면 3~4초</span> 사이에 수거해야 합니다.</li>
+                <li><strong>양파 굽기:</strong> 철판 위에서 <span class="highlight">2.5~3.5초</span> 사이가 황금 시간대입니다.</li>
+                <li><strong>소스 정량:</strong> 소스 마다 딱 <span class="highlight">2번씩</span> 클릭해 짜주는 것이 정량입니다.</li>
+            </ul>
+
+            <div class="modal-divider"></div>
+
+            <h3>🔔 포장 및 서빙</h3>
+            <p>빈 손으로 봉지를 클릭하면 포장되며, 서빙 벨을 누르면 정산됩니다.</p>
+        </div>
+    </div>
+</div>
+
+    <script>
+        const openGuideBtn = document.getElementById('open-guide-btn');
+        const closeGuideBtn = document.getElementById('close-guide-btn');
+        const guideModal = document.getElementById('guide-modal');
+        const closeGuideBtnTop = document.getElementById('close-guide-btn-top');
+        
+        openGuideBtn.addEventListener('click', () => guideModal.classList.remove('modal-hidden'));
+        closeGuideBtnTop.addEventListener('click', () => guideModal.classList.add('modal-hidden'));
+    </script>
 </body>
 </html>

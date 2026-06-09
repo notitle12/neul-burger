@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>늘의 햄버거 가게 - 결산</title>
+    <link rel="stylesheet" href="css/common.css"> <link rel="stylesheet" href="css/result.css">
+</head>
+<body>
+    <div id="result-container">
+        <div class="result-content">
+            <h1 class="result-title">오늘의 조리 결산</h1>
+            
+            <div class="result-board">
+                <div class="final-score-box">
+                    총 획득 수익: <span id="final-score">0</span>원
+                </div>
+                
+                <div class="star-rating" id="star-area">
+                    </div>
+                
+                <p class="result-comment" id="result-comment">정산 중...</p>
+            </div>
+
+            <div class="result-menu">
+                <a href="game.html" class="result-btn retry-btn"> 다시 도전</a>
+                <a href="index.html" class="result-btn home-btn"> 메인 메뉴로</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 💡 주소창에서 점수 데이터 받아오기 (예: result.html?score=25000)
+        const urlParams = new URLSearchParams(window.location.search);
+        const score = parseInt(urlParams.get('score')) || 0;
+
+        // HTML 엘리먼트 캐싱
+        document.getElementById('final-score').innerText = score.toLocaleString();
+        const starArea = document.getElementById('star-area');
+        const commentEl = document.getElementById('result-comment');
+
+        // 🏆 점수별 별점 및 코멘트 조건문 (기준은 원하시는 대로 변경 가능합니다!)
+        let stars = '';
+        let comment = '';
+
+        if (score >= 100000) {
+            stars = '⭐⭐⭐⭐⭐';
+            comment = '버거리로 오세요';
+        } else if (score >= 80000) {
+            stars = '⭐⭐⭐⭐';
+            comment = '패티좀 구워봤네';
+        } else if (score >= 60000) {
+            stars = '⭐⭐⭐';
+            comment = '흔한 프렌차이즈네';
+        } else if (score >= 4000) {
+            stars = '⭐⭐';
+            comment = '이런식으로 해서는 돈을 벌 수 없어!';
+        } else {
+            stars = '⭐';
+            comment = '요리 때려치고 일이나 해!';
+        }
+
+        // 화면에 최종 반영
+        starArea.innerText = stars;
+        commentEl.innerText = comment;
+    </script>
+</body>
+</html>

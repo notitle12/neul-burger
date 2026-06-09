@@ -1,36 +1,41 @@
-* {
-    box-sizing: border-box;
+/* css/game.css */
+
+html, body {
+    width: 100%;
+    height: 100vh !important; /* 💡 화면 전체 높이를 명확하게 확보 */
     margin: 0;
     padding: 0;
-    user-select: none;
-}
-
-body {
+    display: flex !important;
+    justify-content: center !important; /* 가로 가운데 */
+    align-items: center !important;     /* 세로 가운데 */
     background-color: #222;
-    font-family: 'Malgun Gothic', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
 }
 
 #game-container {
+    /* 💡 [추가] 부모(body)의 flex 정렬이 먹히지 않더라도 스스로 화면 중앙에 위치하도록 마진 부여 */
+    margin: auto; 
+
     width: 1000px;
-    height: 627px; /* 💡 650px에서 배경 이미지 원본 높이인 627px로 수정 */
+    height: 627px; 
     background-color: #f0e6d2;
     border: 4px solid #5c4033;
     border-radius: 10px;
-    position: relative;
+    
+    /* 💡 [확인] 원래 있었던 relative 속성 유지 */
+    position: relative; 
+    
     display: flex;
     flex-direction: column;
     padding: 15px;
     justify-content: space-between;
     overflow: hidden; 
-    background-image: url('images/backgroundimg.webp');
-    background-size: 100% 100%; /* 💡 1000x627 상자에 이미지가 1대1로 완벽하게 꽉 찹니다 */      
+    background-image: url('../images/backgroundimg.webp');
+    background-size: 100% 100%;      
     background-position: center;
     background-repeat: no-repeat;
+    
+    /* 💡 [추가] 혹시 모를 브라우저 스크롤 바 발생 및 튕김 방지용 그림자 효과 */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
 }
 
 .section-title {
@@ -186,7 +191,7 @@ body {
     
     background-color: transparent !important;
     border: none !important; 
-    background-image: url('images/grill.webp') !important; 
+    background-image: url('../images/grill.webp') !important; 
     background-size: 100% 100% !important; /* 💡 contain 대신 100% 100%로 지정하여 확장된 영역에 그릴 이미지가 꽉 차도록 수정 */
     background-repeat: no-repeat;
     background-position: center;
@@ -257,7 +262,7 @@ body {
     width: 220px;   
     height: 220px;  
     background-color: transparent !important; 
-    background-image: url('images/wrapping_paper.webp') !important;
+    background-image: url('../images/wrapping_paper.webp') !important;
     background-size: 100% 100% !important; 
     background-repeat: no-repeat !important;
     background-position: center bottom !important;
@@ -277,7 +282,7 @@ body {
 /* 🎁 [수정] 포장 완료(Packed) 상태 디자인 */
 .bag-zone.packed {
     /* 💡 핵심: 포장이 완료되면 새로 만든 스티커 밀봉 이미지로 배경을 교체합니다. */
-    background-image: url('images/wraping_paper_seal.webp') !important; 
+    background-image: url('../images/wraping_paper_seal.webp') !important; 
     
     /* 기존의 네온 오렌지 빛 레이아웃 피드백 효과는 그대로 유지합니다. */
     filter: drop-shadow(0 0 12px rgba(255, 69, 0, 0.8)) brightness(0.95); 
@@ -384,12 +389,12 @@ body {
 
 .tray-item:active { opacity: 0.7 !important; }
 
-.tray-item[data-type="bun"] { background-image: url('images/tray_bun.webp') !important; }
-.tray-item[data-type="cheeze"] { background-image: url('images/tray_cheeze.webp') !important; }
-.tray-item[data-type="onion"] { background-image: url('images/tray_onion.webp') !important; }
-.tray-item[data-type="patty"] { background-image: url('images/tray_patty.webp') !important; }
-.tray-item[data-type="source1"] { background-image: url('images/red_source.webp') !important; }
-.tray-item[data-type="source2"] { background-image: url('images/white_source.webp') !important; }    
+.tray-item[data-type="bun"] { background-image: url('../images/tray_bun.webp') !important; }
+.tray-item[data-type="cheeze"] { background-image: url('../images/tray_cheeze.webp') !important; }
+.tray-item[data-type="onion"] { background-image: url('../images/tray_onion.webp') !important; }
+.tray-item[data-type="patty"] { background-image: url('../images/tray_patty.webp') !important; }
+.tray-item[data-type="source1"] { background-image: url('../images/red_source.webp') !important; }
+.tray-item[data-type="source2"] { background-image: url('../images/white_source.webp') !important; }    
 
 /* 마우스 추적 레이어 */
 #mouse-follower {
@@ -409,7 +414,7 @@ body {
 
 #grill-container, #bag-container {
     box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
-    background-image: url('images/wood_texture.webp'); 
+    background-image: url('../images/wood_texture.webp'); 
 }
 
 /* ==========================================
@@ -525,7 +530,7 @@ body {
 /* 1) 황금 레시피 / 일반 성공 버거 제출 시 */
 #dialogue-box.bubble-good {
     display: flex !important;
-    background-image: url('images/bubble_good.webp') !important; 
+    background-image: url('../images/bubble_good.webp') !important; 
     background-size: 100% 100%;
     background-repeat: no-repeat;
     color: #7c3f00; 
@@ -535,7 +540,7 @@ body {
 /* 2) 0원 버거 / 사기 버거 제출 시 분노 연출 */
 #dialogue-box.bubble-bad {
     display: flex !important;
-    background-image: url('images/bubble_bad.webp') !important; 
+    background-image: url('../images/bubble_bad.webp') !important; 
     background-size: 100% 100%;
     background-repeat: no-repeat;
     color: #b71c1c; 
@@ -561,12 +566,18 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
+    /* display: flex; */
     justify-content: center;
     align-items: center;
     z-index: 100000;
     transition: opacity 0.2s ease;
 }
+
+/* 💡 모달이 켜졌을 때만 flex가 작동하도록 아래 스타일을 새로 추가합니다 */
+#settings-modal:not(.modal-hidden) {
+    display: flex;
+}
+
 
 .modal-content {
     background-color: #fcf6eb;
@@ -637,8 +648,4 @@ body {
 
 #settings-close-btn:active {
     background-color: #3e2a20;
-}
-
-.modal-hidden {
-    display: none !important;
 }

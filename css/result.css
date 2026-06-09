@@ -1,0 +1,105 @@
+/* css/result.css */
+
+#result-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 4000;
+}
+
+.result-content {
+    text-align: center;
+    background: #fffcf5;
+    border: 4px dashed #8b4513;
+    padding: 5px 40px;
+    width: 450px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+}
+
+.result-title {
+    font-size: 2rem;
+    color: #5c4033;
+    margin-top: 25px;
+    margin-bottom: 20px;
+}
+
+.result-board {
+    background-color: #f5ecd8;
+    border-radius: 10px;
+    padding: 25px 15px;
+    margin-bottom: 30px;
+    border: 1px solid #d2b48c;
+}
+
+.final-score-box {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+#final-score {
+    color: #ff4500;
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.star-rating {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    letter-spacing: 5px;
+    filter: drop-shadow(0 0 4px #ffd700);
+}
+
+.result-comment {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #5c4033;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.result-menu {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.result-btn {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.retry-btn {
+    background-color: #ff4500;
+    color: white;
+}
+
+.retry-btn:hover {
+    background-color: #e03e00;
+    transform: scale(1.03);
+}
+
+.home-btn {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.home-btn:hover {
+    background-color: #6c7a7d;
+    transform: scale(1.03);
+}
