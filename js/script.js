@@ -308,22 +308,22 @@ bellBtn.addEventListener('click', () => {
             if (reactionTimeout) clearTimeout(reactionTimeout); 
 
             if (isJangnanAny) {
-                reactionImg.src = 'images/clear_fail.png'; 
+                reactionImg.src = 'images/clear_fail.webp'; 
                 dialogueBox.className = 'bubble-bad';
                 dialogueBox.innerText = "지금 장난해?!";
             }
             else if (earnedMoneyTotal === 0) {
-                reactionImg.src = 'images/clear_fail.png'; 
+                reactionImg.src = 'images/clear_fail.webp'; 
                 dialogueBox.className = 'bubble-bad';
                 dialogueBox.innerText = "이딴 걸 먹으라고 준 거야?!";
             }
             else if (isPerfectSubmit) {
-                reactionImg.src = 'images/clear_perfect.png'; 
+                reactionImg.src = 'images/clear_perfect.webp'; 
                 dialogueBox.className = 'bubble-good';
                 dialogueBox.innerText = "이거지! 야르~";
             }
             else {
-                reactionImg.src = 'images/clear_soso.png'; 
+                reactionImg.src = 'images/clear_soso.webp'; 
                 dialogueBox.className = 'bubble-good'; 
                 dialogueBox.innerText = "쩝쩝쩝 먹을만하네"; 
             }
@@ -422,10 +422,10 @@ function updateFollower(e) {
         let imagePath = "";
 
         if (mouseHolding.type === "source1") {
-            imagePath = "images/red_source.png";      
+            imagePath = "images/red_source.webp";      
         }
         else if (mouseHolding.type === "source2") {
-            imagePath = "images/white_source.png";
+            imagePath = "images/white_source.webp";
         }
         else {
             let key = mouseHolding.type;

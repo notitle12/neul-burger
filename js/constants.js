@@ -15,34 +15,34 @@ const targetRecipe = [
 ];
 
 const assetImages = {
-    'wrapping_paper': 'images/wrapping_paper.png',
+    'wrapping_paper': 'images/wrapping_paper.webp',
     
-    'bun': 'images/bun.png',               
-    'bun_bottom': 'images/bun1.png',        
-    'bun_top': 'images/bun2.png',           
-    'cheeze': 'images/cheeze.png',
+    'bun': 'images/bun.webp',               
+    'bun_bottom': 'images/bun1.webp',        
+    'bun_top': 'images/bun2.webp',           
+    'cheeze': 'images/cheeze.webp',
     
-    'patty_raw': 'images/patty1.png',
-    'patty_cooked': 'images/patty2.png',    
-    'patty_overcooked': 'images/patty3.png',
-    'patty_burned': 'images/patty4.png',    
+    'patty_raw': 'images/patty1.webp',
+    'patty_cooked': 'images/patty2.webp',    
+    'patty_overcooked': 'images/patty3.webp',
+    'patty_burned': 'images/patty4.webp',    
     
-    'patty_raw_raw': 'images/patty1.png',      
-    'patty_raw_cooked': 'images/patty1.png',   
-    'patty_raw_burned': 'images/patty4.png',   
-    'patty_cooked_raw': 'images/patty1.png',   
-    'patty_cooked_cooked': 'images/patty2.png',
-    'patty_cooked_burned': 'images/patty4.png',
+    'patty_raw_raw': 'images/patty1.webp',      
+    'patty_raw_cooked': 'images/patty1.webp',   
+    'patty_raw_burned': 'images/patty4.webp',   
+    'patty_cooked_raw': 'images/patty1.webp',   
+    'patty_cooked_cooked': 'images/patty2.webp',
+    'patty_cooked_burned': 'images/patty4.webp',
 
-    'onion_raw': 'images/onion1.png',
-    'onion_cooked': 'images/onion2.png',
-    'onion_burned': 'images/onion3.png',
-    'source1_1': 'images/red_source1.png',
-    'source1_2': 'images/red_source2.png',
-    'source1_3': 'images/red_source3.png',
-    'source2_1': 'images/white_source1.png',
-    'source2_2': 'images/white_source2.png',
-    'source2_3': 'images/white_source3.png'
+    'onion_raw': 'images/onion1.webp',
+    'onion_cooked': 'images/onion2.webp',
+    'onion_burned': 'images/onion3.webp',
+    'source1_1': 'images/red_source1.webp',
+    'source1_2': 'images/red_source2.webp',
+    'source1_3': 'images/red_source3.webp',
+    'source2_1': 'images/white_source1.webp',
+    'source2_2': 'images/white_source2.webp',
+    'source2_3': 'images/white_source3.webp'
 };
 
 const combinationGaps = {
